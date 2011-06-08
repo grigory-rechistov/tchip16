@@ -15,6 +15,13 @@
 
 #include "Opcodes.h"
 
+typedef unsigned char	u8;
+typedef unsigned short	u16;
+typedef unsigned int	u32;
+typedef signed char		s8;
+typedef signed short	s16;
+typedef signed int		s32;
+
 // Assembler class, does the hard work
 class Assembler {
 public:
@@ -34,14 +41,15 @@ private:
 	// Import a binary file (IMPORTBIN)
 	bool importBin(const std::string&, int, int, const std::string&);
 
-	void op_void(OPCODE);			// nop, cls, vblnk, ret, snd0, pushall, popall
-	void op_imm(OPCODE);			// jmp, jmc, jmz, jx, call, cx, spr, snd[1-3],
-	void op_n(OPCODE);				// bgc
-	void op_n_n(OPCODE);			// flip
-	void op_r_imm(OPCODE);			// rnd, ldi, ldm, stm, addi, subi, muli, divi, cmpi, andi, tsti, ori, xori
-	void op_r_n(OPCODE);			// shl, shr, sal, sar
-	void op_r_r_imm(OPCODE);		// drw, jme
-	void op_r_r_r(OPCODE);			// add, sub, mul, div, cmp, and, tst, or, xor
+	void writeOp(std::vector<std::string>&);
+	void op_void(OPCODE);				// nop, cls, vblnk, ret, snd0, pushall, popall
+	void op_imm(OPCODE,u16);			// jmp, jmc, jmz, jx, call, cx, spr, snd[1-3],
+	void op_n(OPCODE,u8);				// bgc
+	void op_n_n(OPCODE,u8,u8);			// flip
+	void op_r_imm(OPCODE,u8,u16);		// rnd, ldi, ldm, stm, addi, subi, muli, divi, cmpi, andi, tsti, ori, xori
+	void op_r_n(OPCODE,u8,u8);			// shl, shr, sal, sar
+	void op_r_r_imm(OPCODE,u8,u8,u16);	// drw, jme
+	void op_r_r_r(OPCODE,u8,u8,u8);		// add, sub, mul, div, cmp, and, tst, or, xor
 	void db(std::vector<unsigned char>&);
 
 	std::map<char*,int> labels;

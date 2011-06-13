@@ -6,8 +6,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef OPCODES_H
-#define OPCODES_H
+#ifndef _OPCODES_H
+#define _OPCODES_H
 
 typedef OPCODE	unsigned char;
 

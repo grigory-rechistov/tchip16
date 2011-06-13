@@ -6,8 +6,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef ASSEMBLER_H
-#define ASSEMBLER_H
+#ifndef _ASSEMBLER_H
+#define _ASSEMBLER_H
 
 #include <map>
 #include <vector>
@@ -22,20 +22,24 @@ typedef signed char		s8;
 typedef signed short	s16;
 typedef signed int		s32;
 
+typedef std::vector<std::string> line;
+typedef std::vector<line>		 lineList;
+
+const u32 MEM_SIZE =	64*1024;
+
 // Assembler class, does the hard work
 class Assembler {
 public:
 	Assembler();
 	~Assembler();
 
-	bool openFile(char*);
-	bool parseLine();
-
+	bool openFile(const char*);
+	void setOutputFile(const char*);
 	void outputFile();
+	// Remove ',' '\t' etc.
+	void cleanLine(line&);
 
 private:
-	// Remove ',' '\t' etc.
-	void cleanLine(const std::string&);
 	// Import another asm file (INCLUDE)
 	bool importInc(const std::string&);
 	// Import a binary file (IMPORTBIN)
@@ -52,15 +56,21 @@ private:
 	void op_r_r_r(OPCODE,u8,u8,u8);		// add, sub, mul, div, cmp, and, tst, or, xor
 	void db(std::vector<unsigned char>&);
 
+	// Parsed source file
+	lineList tokens;
+	// Lookup tables
 	std::map<char*,int> labels;
 	std::map<char*,int> consts;
-	// Source code buffer
-	std::string input;
+	// Output byte buffer
+	u8* buffer;
 	// Output file stream
 	std::ofstream output;
-	
-	int lineNb;
-	int curAddress;
+	// Output filename
+	std::string outputFP;
+	// Keep track of progress
+	int lineNb;							// line nb in tokens array
+	int lineNbAlt;						// line nb in source file
+	int curAddress;						// address in output bin
 }
 
 #endif

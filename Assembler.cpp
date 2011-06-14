@@ -9,9 +9,15 @@
 #include "Assembler.h"
 
 Assembler::Assembler() {
+	input.reserve(20*1024*1024);
 	buffer = new u8[MEM_SIZE]();
 	lineNb = 0;
 	curAddress = 0;
+	zeroFill = false;
+	alignLabels = false;
+	caseSens = false;
+	allowObs = false;
+	writeMmap = false;
 }
 
 Assembler::~Assembler() {
@@ -19,12 +25,7 @@ Assembler::~Assembler() {
 }
 
 bool Assembler::openFile(const char* fn) {
-	std::ifstream file(fn);
-	if(file.is_open()) {
-		input = new std::string((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-		if(input != NULL)
-			return true;
-	}
+	
 	return false;
 }
 
@@ -33,12 +34,28 @@ void Assembler::setOutputFile(const char* fn) {
 }
 
 bool Assembler::importInc(const std::string& fn) {
-	std::ifstream inc(fn.c_str());
-	if(inc.is_open()) {
-		std::string incFile((std::istreambuf_iterator<char>(inc)), std::istreambuf_iterator<char>());
-		input->append(incFile);
-	}
+	
 	return false;
+}
+
+void Assembler::useZeroFill() {
+	zeroFill = true;
+}
+
+void Assembler::useAlign() {
+	alignLabels = true;
+}
+
+void Assembler::useCaseSens() {
+	caseSens = true;
+}
+
+void Assembler::useObsolete() {
+	allowObs = true;
+}
+
+void Assembler::putMmap() {
+	writeMmap = true;
 }
 
 void Assembler::writeOp(std::vector<std::string>& tokens) {

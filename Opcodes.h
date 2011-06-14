@@ -9,7 +9,7 @@
 #ifndef _OPCODES_H
 #define _OPCODES_H
 
-typedef OPCODE	unsigned char;
+typedef unsigned char OPCODE;
 
 enum chip16_opcodes {
 	NOP =	0x00, CLS, VBLNK, BGC, SPR, DRW_I, DRW_R, RND, FLIP, SND0, SND1, SND2, SND3,

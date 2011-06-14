@@ -33,39 +33,73 @@
 		for hobbyist development on the system, not for production 
 		environments.
 */
+
+#include <iostream>
+
 #include "Error.h"
 #include "Assembler.h"
 
 int main(int argc, char* argv[]) {
-	// Usage: ./tchip16 source [-o dest][-z][-c][-w][-m][-h]
+	// Usage: ./tchip16 source [-o dest][-z][-a][-c][-b][-m][-h]
 	// source: the input source filename
 	// -o: name the output file to dest
 	// -z: if assembled code < 64K, zero rest up to 64K
+	// -a: align labels to 4-byte boundaries
 	// -c: make labels and constants case-sensitive
-	// -w: display warnings, ie. obsolete opcodes
+	// -b: use backwards compatibility (allow use of obsolete opcodes)
 	// -m: output mmap.txt which displays the address of each label
 	// -h: displays help text
 
 	Assembler* tc16 = new Assembler();
-	// Parse the command lien arguments
+
+	// Parse the command line arguments
 	if(argc > 2) {
 		for(int i=2; i<argc; i++) {
 			std::string arg(argv[i]);
-			if(arg.length() > 1) {
-				if(argv[i][1] == 'o') {
+			if(arg.length() > 1 && arg[0] == '-') {
+				if(arg[1] == 'o' || arg[1] == 'O') {
 					if(argc > i+1)
 						tc16->setOutputFile(argv[++i]);
 					else
 						Error err(ERR_CMD_NONE);
 				}
-				// ... 
-				else if(argv[i][1] == 'h') {
-
+				else if(arg[1] == 'z' || arg[1] == 'Z')
+					tc16->useZeroFill();
+				else if(arg[1] == 'a' || arg[1] == 'A')
+					tc16->useAlign();
+				else if(arg[1] == 'c' || arg[1] == 'Z')
+					tc16->useCaseSens();
+				else if(arg[1] == 'b' || arg[1] == 'B')
+					tc16->useObsolete();
+				else if(arg[1] == 'm' || arg[1] == 'M')
+					tc16->putMmap();
+				else if(arg[1] == 'h' || arg[1] == 'H') {
+					std::cout <<	"Usage: ./tchip16 source [-o dest][-z][-a][-c][-b][-m][-h]\n\n"
+									"\tsource: the input source filename\n"
+									"\t-o: name the output file to dest\n"
+									"\t-z: if assembled code < 64K, zero rest up to 64K\n"
+									"\t-a: align labels to 4-byte boundaries\n"
+									"\t-c: make labels and constants case-sensitive\n"
+									"\t-b: use backwards compatibility (allow use of obsolete opcodes)\n"
+									"\t-m: output mmap.txt which displays the address of each label\n"
+									"\t-h: displays help text\n";
+#ifdef _DEBUG
+					WAIT
+#endif
+					return 0;
 				}
+				else
+					Error err(ERR_CMD_UNKNOWN);
 			}
 			else
 				Error err(ERR_CMD_UNKNOWN);
 		}
 	}
+
+	// TODO: The actual assembling
+#ifdef _DEBUG
+	WAIT
+#endif
+
 	return 0;
 }

@@ -25,7 +25,7 @@ typedef signed int		s32;
 typedef std::vector<std::string> line;
 typedef std::vector<line>		 lineList;
 
-const u32 MEM_SIZE =	64*1024;
+const u32 MEM_SIZE = 64*1024;
 
 // Assembler class, does the hard work
 class Assembler {
@@ -35,17 +35,30 @@ public:
 
 	bool openFile(const char*);
 	void setOutputFile(const char*);
+	// Resolve the imports
+	void getImports();
+	// Build token array
+	void tokenize();
+	// Write buffer to disk
 	void outputFile();
-	// Remove ',' '\t' etc.
-	void cleanLine(line&);
+	// Command line modifier methods
+	void useZeroFill();
+	void useAlign();
+	void useCaseSens();
+	void useObsolete();
+	void putMmap();
 
 private:
 	// Import another asm file (INCLUDE)
 	bool importInc(const std::string&);
 	// Import a binary file (IMPORTBIN)
 	bool importBin(const std::string&, int, int, const std::string&);
+	// Remove ',' '\t' etc.
+	void cleanLine(line&);				// TODO: change parameter, this builds tokens NOT take them			
+	// Make line of tokens
+	void buildTokens(line&);
 
-	void writeOp(std::vector<std::string>&);
+	void writeOp(line&);
 	void op_void(OPCODE);				// nop, cls, vblnk, ret, snd0, pushall, popall
 	void op_imm(OPCODE,u16);			// jmp, jmc, jmz, jx, call, cx, spr, snd[1-3],
 	void op_n(OPCODE,u8);				// bgc
@@ -54,8 +67,12 @@ private:
 	void op_r_n(OPCODE,u8,u8);			// shl, shr, sal, sar
 	void op_r_r_imm(OPCODE,u8,u8,u16);	// drw, jme
 	void op_r_r_r(OPCODE,u8,u8,u8);		// add, sub, mul, div, cmp, and, tst, or, xor
-	void db(std::vector<unsigned char>&);
 
+	void db(std::vector<u8>&);
+	void db(std::string&);
+
+	// Input source
+	std::string input;
 	// Parsed source file
 	lineList tokens;
 	// Lookup tables
@@ -68,9 +85,17 @@ private:
 	// Output filename
 	std::string outputFP;
 	// Keep track of progress
+	std::vector<std::string> filesImp;	// imported files (avoid cycles)
 	int lineNb;							// line nb in tokens array
 	int lineNbAlt;						// line nb in source file
 	int curAddress;						// address in output bin
-}
+	int totalBytes;						// size in B of output bin
+	// Command line modifiers
+	bool zeroFill;
+	bool alignLabels;
+	bool caseSens;
+	bool allowObs;
+	bool writeMmap;
+};
 
 #endif

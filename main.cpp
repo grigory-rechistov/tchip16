@@ -52,6 +52,14 @@ int main(int argc, char* argv[]) {
 
 	Assembler* tc16 = new Assembler();
 
+	// Set the input file
+	if(argc > 1) {
+		if(!tc16->openFile(argv[1]))
+			Error err(ERR_IO);
+	}
+	else
+		Error err(ERR_CMD_NONE);
+
 	// Parse the command line arguments
 	if(argc > 2) {
 		for(int i=2; i<argc; i++) {
@@ -83,9 +91,6 @@ int main(int argc, char* argv[]) {
 									"\t-b: use backwards compatibility (allow use of obsolete opcodes)\n"
 									"\t-m: output mmap.txt which displays the address of each label\n"
 									"\t-h: displays help text\n";
-#ifdef _DEBUG
-					WAIT
-#endif
 					return 0;
 				}
 				else
@@ -96,7 +101,8 @@ int main(int argc, char* argv[]) {
 		}
 	}
 
-	// TODO: The actual assembling
+	tc16->tokenize();
+
 #ifdef _DEBUG
 	WAIT
 #endif

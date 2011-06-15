@@ -10,8 +10,11 @@
 #define _ASSEMBLER_H
 
 #include <map>
+#include <stack>
 #include <vector>
+#include <string>
 #include <fstream>
+#include <sstream>
 
 #include "Opcodes.h"
 
@@ -35,8 +38,6 @@ public:
 
 	bool openFile(const char*);
 	void setOutputFile(const char*);
-	// Resolve the imports
-	void getImports();
 	// Build token array
 	void tokenize();
 	// Write buffer to disk
@@ -49,14 +50,8 @@ public:
 	void putMmap();
 
 private:
-	// Import another asm file (INCLUDE)
-	bool importInc(const std::string&);
 	// Import a binary file (IMPORTBIN)
 	bool importBin(const std::string&, int, int, const std::string&);
-	// Remove ',' '\t' etc.
-	void cleanLine(line&);				// TODO: change parameter, this builds tokens NOT take them			
-	// Make line of tokens
-	void buildTokens(line&);
 
 	void writeOp(line&);
 	void op_void(OPCODE);				// nop, cls, vblnk, ret, snd0, pushall, popall
@@ -72,7 +67,7 @@ private:
 	void db(std::string&);
 
 	// Input source
-	std::string input;
+	std::stack<std::string> input;
 	// Parsed source file
 	lineList tokens;
 	// Lookup tables

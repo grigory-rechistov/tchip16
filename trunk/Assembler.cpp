@@ -7,6 +7,9 @@
 */
 
 #include <iostream>
+#include <fstream>
+#include <sstream>
+#include <algorithm>
 
 #include "Assembler.h"
 
@@ -14,6 +17,7 @@ Assembler::Assembler() {
 	buffer = new u8[MEM_SIZE]();
 	lineNb = 0;
 	curAddress = 0;
+	totalBytes = 0;
 	zeroFill = false;
 	alignLabels = false;
 	caseSens = false;
@@ -25,56 +29,87 @@ Assembler::~Assembler() {
 
 }
 
-bool Assembler::openFile(const char* fn) {
+/*bool Assembler::openFile(const char* fn) {
 	std::ifstream in(fn);
 	if(in.is_open()) {
 		std::stringstream file;
 		file << in.rdbuf();
-		/*std::string file((std::istreambuf_iterator<char>(in)), 
-						  std::istreambuf_iterator<char>());*/
-		input.push(file.str());
+		//std::string file((std::istreambuf_iterator<char>(in)), 
+		//				  std::istreambuf_iterator<char>());
+		input.insert(0,file.str());
 		in.close();
 		return true;
 	}
 	return false;
-}
+} */
 
 void Assembler::setOutputFile(const char* fn) {
 	outputFP = fn;
 }
 
-void Assembler::tokenize() {
+void Assembler::tokenize(const char* fn) {
+	int lineNbAlt = -1;
+	std::string f(fn);
+	// Check for import cycles
+	for(unsigned i=0; i<filesImp.size(); i++) {
+		if(filesImp[i].compare(f) == 0)
+			Error err(ERR_INC_CYCLE);
+	}
+	filesImp.push_back(f);
+
+#ifdef _DEBUG
+	std::cout << "Parsing file: " << f << "\n";
+#endif
+
+	// Open the file
+	std::ifstream file(fn);
+	if(!file.is_open())
+		Error err(ERR_IO);
 	// Get a line
 	std::string ln;
-	// This only works for single file processing
-	// Need to figure out how to get multiple files working
-	std::stringstream s(input.top());
-	while(std::getline(s,ln)) {
+	while(std::getline(file,ln)) {
+		lineNbAlt++;
+		// Strip ',' from the string
+		ln.erase(std::remove_if(ln.begin(), ln.end(), isComma), ln.end());
 		// Get tokens from the line
 		line toks;
 		std::string tok;
 		std::stringstream ss(ln);
 		while(ss >> tok)
 			toks.push_back(tok);
-
+		// Some basic parsing
 		for(unsigned i=0; i<toks.size(); i++) {
 			if(toks[i] == "\t" || toks[i] == "")
 				toks.erase(toks.begin()+i);
 			else if(toks[i][0] == ';')
 				toks.resize(i);
 		}
-		if(!toks.empty())
-			tokens.push_back(toks);
-	}
-	// DEBUG: print out what has been stored
-#ifdef _DEBUG
-	for(unsigned i=0; i<tokens.size(); i++) {
-		for(unsigned j=0; j<tokens[i].size(); j++) {
-			std::cout << tokens[i][j] << "_";
+		if(!toks.empty()) {
+			if(toks[0] == "include") {
+				if(toks.size() == 1)
+					Error err(ERR_INC_NONE,f,lineNbAlt);
+				else if(toks.size() > 2)
+					Error err(ERR_TOO_MANY,f,lineNbAlt);
+				else
+					tokenize(toks[1].c_str());
+			}
+			else if(toks[0] == "importbin") {
+				if(toks.size() < 5)
+					Error err(ERR_OP_ARGS,f,lineNbAlt);
+				else if(toks.size() > 5)
+					Error err(ERR_TOO_MANY,f,lineNbAlt);
+				//TODO: importing file!
+				totalBytes += atoi_t(toks[3]) - atoi_t(toks[2]);
+			}
+			else {
+				tokens.push_back(toks);
+				lineNb++;
+				totalBytes += 4;
+			}
 		}
-		std::cout << std::endl;
 	}
-#endif
+
+	file.close();
 }
 
 void Assembler::outputFile() {
@@ -99,6 +134,17 @@ void Assembler::useObsolete() {
 
 void Assembler::putMmap() {
 	writeMmap = true;
+}
+
+void Assembler::debugOut() {
+	std::cout << "Total size: " << totalBytes << "B\n";
+	// DEBUG: print out what has been stored
+	for(unsigned i=0; i<tokens.size(); i++) {
+		for(unsigned j=0; j<tokens[i].size(); j++) {
+			std::cout << tokens[i][j] << "_";
+		}
+		std::cout << std::endl;
+	}
 }
 
 bool Assembler::importBin(const std::string& fn, int offs, int n, const std::string& label) {
@@ -147,4 +193,57 @@ void Assembler::db(std::vector<u8>& bytes) {
 
 void Assembler::db(std::string& str) {
 
+}
+
+u16 Assembler::atoi_t(std::string& str)
+{
+	if(str.size() == 0)
+		return 0;
+	std::transform(str.begin(),str.end(),str.begin(),::toupper);
+	// If number is hexadecimal
+	// Notation: $NN, #NN, 0xNN, NNh
+	if(str.size() > 1 && (
+		(str[0] == '#') ||
+		(str[0] == '$') ||
+		(str[0] == '0' && str[1] == 'X') || 
+		(str[str.size()-1] == 'H'))) {
+
+		if(str[0] == '#' || str[0] == '$')
+			str = str.substr(1,str.size());
+		else if(str[0] == '0' && str[1] == 'X')
+			str = str.substr(2,str.size());
+		else if(str[str.size()-1] == 'H')
+			str = str.substr(0,str.size()-1);
+		// Number is bigger than 16-bit, not allowed
+		if(str.size() > 4)
+			str = str.substr(0,4);
+		u16 val = 0;
+		for(size_t i=0; i<str.size(); i++) {
+			char c = str[i];
+			if(c >= 0x30 && c <= 0x39)
+				val += (int)( pow(16.f,(int)(str.size() - i - 1)) ) * (c - 0x30);
+			else if(c >= 0x41 && c <= 0x46)
+				val += (int)( pow(16.f,(int)(str.size() - i - 1)) ) * (c - 0x41 + 10);
+			else 
+				Error err(ERR_NAN,str);
+		}
+		return val;
+	}
+	// Otherwise, assume it's decimal
+	else {
+		u16 val = 0;
+		for(size_t i=0; i<str.size(); i++) {
+			char c = str[i];
+			if(c >= 0x30 && c <= 0x39)
+				val += (int)( pow(10.f,(int)(str.size() - i - 1)) ) * (c - 0x30);
+			else
+				Error err(ERR_NAN,str);
+		}
+		return val;
+	}
+}
+
+
+bool isComma(const char c) {
+	return (c == ',');
 }

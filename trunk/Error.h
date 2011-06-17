@@ -11,21 +11,25 @@
 
 #define WAIT char c; std::cin >> c;
 
-enum err {
-	ERR_IO, ERR_CMD_NONE, ERR_CMD_UNKNOWN, ERR_OP_UNKNOWN, 
+enum ERROR {
+	ERR_NONE, ERR_IO, ERR_CMD_NONE, ERR_CMD_UNKNOWN, ERR_OP_UNKNOWN, 
 	ERR_OP_ARGS, ERR_NUM_NONE, ERR_LABEL_REDEF, ERR_CONST_REDEF,
-	ERR_INC_CYCLE
+	ERR_INC_CYCLE, ERR_INC_NONE, ERR_TOO_MANY, ERR_NAN
 };
 
 class Error
 {
 public:
 	Error(void);
-	Error(int code);
-	Error(int code, int lineNb);
+	// only error code
+	Error(ERROR);
+	// error code, filename, line number
+	Error(ERROR,std::string&,int);
+	// error code, object
+	Error(ERROR,std::string&);
 	~Error(void);
 private:
-	void print(int code);
+	void print(ERROR code);
 };
 
 #endif

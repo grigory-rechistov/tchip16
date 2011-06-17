@@ -10,12 +10,10 @@
 #define _ASSEMBLER_H
 
 #include <map>
-#include <stack>
 #include <vector>
 #include <string>
-#include <fstream>
-#include <sstream>
 
+#include "Error.h"
 #include "Opcodes.h"
 
 typedef unsigned char	u8;
@@ -36,10 +34,9 @@ public:
 	Assembler();
 	~Assembler();
 
-	bool openFile(const char*);
 	void setOutputFile(const char*);
 	// Build token array
-	void tokenize();
+	void tokenize(const char*);
 	// Write buffer to disk
 	void outputFile();
 	// Command line modifier methods
@@ -48,6 +45,8 @@ public:
 	void useCaseSens();
 	void useObsolete();
 	void putMmap();
+	// Debug use
+	void debugOut();
 
 private:
 	// Import a binary file (IMPORTBIN)
@@ -66,8 +65,8 @@ private:
 	void db(std::vector<u8>&);
 	void db(std::string&);
 
-	// Input source
-	std::stack<std::string> input;
+	u16 atoi_t(std::string&);
+
 	// Parsed source file
 	lineList tokens;
 	// Lookup tables
@@ -75,14 +74,11 @@ private:
 	std::map<char*,int> consts;
 	// Output byte buffer
 	u8* buffer;
-	// Output file stream
-	std::ofstream output;
 	// Output filename
 	std::string outputFP;
 	// Keep track of progress
 	std::vector<std::string> filesImp;	// imported files (avoid cycles)
 	int lineNb;							// line nb in tokens array
-	int lineNbAlt;						// line nb in source file
 	int curAddress;						// address in output bin
 	int totalBytes;						// size in B of output bin
 	// Command line modifiers
@@ -92,5 +88,8 @@ private:
 	bool allowObs;
 	bool writeMmap;
 };
+
+// Aux. method for removing ','
+bool isComma(const char);
 
 #endif

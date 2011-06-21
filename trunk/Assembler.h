@@ -89,7 +89,4 @@ private:
 	bool writeMmap;
 };
 
-// Aux. method for removing ','
-bool isComma(const char);
-
 #endif

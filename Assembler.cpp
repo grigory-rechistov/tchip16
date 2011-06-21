@@ -70,7 +70,7 @@ void Assembler::tokenize(const char* fn) {
 	while(std::getline(file,ln)) {
 		lineNbAlt++;
 		// Strip ',' from the string
-		ln.erase(std::remove_if(ln.begin(), ln.end(), isComma), ln.end());
+		std::replace(ln.begin(),ln.end(),',',' ');
 		// Get tokens from the line
 		line toks;
 		std::string tok;
@@ -84,6 +84,7 @@ void Assembler::tokenize(const char* fn) {
 			else if(toks[i][0] == ';')
 				toks.resize(i);
 		}
+		// Parse some directives
 		if(!toks.empty()) {
 			if(toks[0] == "include") {
 				if(toks.size() == 1)
@@ -137,6 +138,8 @@ void Assembler::putMmap() {
 }
 
 void Assembler::debugOut() {
+	if(tokens.empty())
+		return;
 	std::cout << "Total size: " << totalBytes << "B\n";
 	// DEBUG: print out what has been stored
 	for(unsigned i=0; i<tokens.size(); i++) {
@@ -241,9 +244,4 @@ u16 Assembler::atoi_t(std::string& str)
 		}
 		return val;
 	}
-}
-
-
-bool isComma(const char c) {
-	return (c == ',');
 }

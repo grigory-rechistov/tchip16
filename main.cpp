@@ -16,24 +16,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/*
-	Technical disclaimer:
-
-	tchip16 is my effort to provide a functional and usable assembler
-	for the Chip16 system.
-	I do NOT claim tchip16 to be optimal(1) or fully-featured(2):
-	(1) The assembler is not single-pass or even 2-pass, it is 
-		multi-pass. This is done for simplicity, and the small size of
-		Chip16 programs combined with the average computer's power
-		means this does not affect the user's experience in any noticeable
-		fashion.
-	(2) This assembler will probably never have the power or flexibility
-		of NASM or equivalents; that is not the purpose or the scope of 
-		this project, though. This assembler is designed first and for all
-		for hobbyist development on the system, not for production 
-		environments.
-*/
-
 #include <iostream>
 
 #include "Error.h"
@@ -42,15 +24,6 @@
 void helpOut();
 
 int main(int argc, char* argv[]) {
-	// Usage: ./tchip16 source [-o dest][-z][-a][-c][-b][-m][-h]
-	// source: the input source filename
-	// -o: name the output file to dest
-	// -z: if assembled code < 64K, zero rest up to 64K
-	// -a: align labels to 4-byte boundaries
-	// -c: make labels and constants case-sensitive
-	// -b: use backwards compatibility (allow use of obsolete opcodes)
-	// -m: output mmap.txt which displays the address of each label
-	// -h: displays help text
 
 	Assembler* tc16 = new Assembler();
 
@@ -115,13 +88,18 @@ void helpOut() {
 		"\t-h: displays help text\n\n";
 
 	std::cout <<	"Directives:\n"
-		"\tinclude <file> : file is included at this point in the file\n"
-		"\t\tFiles may only be included once in the project.\n"
-		"\timportbin <file> <offset> <length> <label> : reads a binary file\n"
-		"\t\tFile is read from (offset) to (offset+length), stored at label\n"
-		"\tconst <name> <value> : occurrences of name replaced with value\n"
-		"\tdb <val1> [...] : stores bytes in the file at this position\n"
-		"\tdb <string> : stores the ASCII string at this position\n\n";
+		"\tinclude <file> :\n"
+		"\t\tFile is included at this point in the file\n"
+		"\t\tFiles may only be included once in the project\n\n"
+		"\timportbin <file> <offset> <length> <label> :\n"
+		"\t\tFile is read from (offset) to (offset+length), stored at label\n\n"
+		"\tconst <name> <value> :\n" 
+		"\t\tAll occurrences of name replaced with value\n\n"
+		"\tdb <val1> [...] :\n"
+		"\t\tStores bytes val1 - ... in the file at this position\n"
+		"\t\tAlignment is affected by -a flag\n\n"
+		"\tdb <str> :\n" 
+		"\t\tStores str (ASCII string) at this position\n\n";
 
 	std::cout << "Key: <> = mandatory, [] = optional\n";
 }

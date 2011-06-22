@@ -65,6 +65,7 @@ int main(int argc, char* argv[]) {
 		if(argv[1][0] == '-' && argv[1][1] == 'h' || argv[1][1] == 'H')
 			helpOut();
 		else
+			// Do stuff!
 			tc16->tokenize(argv[1]);
 	}
 	else
@@ -72,8 +73,10 @@ int main(int argc, char* argv[]) {
 
 #ifdef _DEBUG
 	tc16->debugOut();
-	WAIT
+	WAIT;
 #endif
+	
+	tc16->outputFile();
 
 	return 0;
 }

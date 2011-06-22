@@ -80,7 +80,7 @@ void Error::print(ERROR code) {
 		break;
 	}
 #ifdef _DEBUG
-	WAIT
+	WAIT;
 #endif
 	// Terminate assembler as we have encountered a fatal error
 	exit(1);

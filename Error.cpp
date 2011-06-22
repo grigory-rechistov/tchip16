@@ -37,6 +37,10 @@ void Error::print(ERROR code) {
 		std::cout	<< "Expected program argument #(" << code << ")\n"
 					<< "(possibly missing dest from [-o dest]?)\n";
 		break;
+	case ERR_NO_INPUT:
+		std::cout	<< "No source file specified #(" << code << ")\n"
+					<< "(flag -h for help)\n";
+		break;
 	case ERR_CMD_UNKNOWN:
 		std::cout	<< "Unknown program argument #(" << code << ")\n"
 					<< "(use -h to see list)\n";

@@ -51,7 +51,11 @@ SYNTAX:
 
 tchip16 accepts standard assembly syntax. Here's an example:
 
+	constant1	equ 0x1000
+	lucky		equ 7
+	
 	label1: 	add r0, r1
+				muli r0, lucky
 				sub r0 r2		; Test
 				jnz label1
 	; Testing
@@ -62,11 +66,18 @@ tchip16 accepts standard assembly syntax. Here's an example:
 	:vals		db 0x00, 0x01, 0x02, 10, 11h
 	print_str:	ret
 	
-Labels may end or start with a colon ":"
+Labels may end OR start with a colon ":", NOT both
 Commas and/or whitespace delimit instructions/operands
 
 ------------------------------------------------------------------------------------
 DIRECTIVES
 ------------------------------------------------------------------------------------
 
-tchip16 also features some directives to make your life easier.
+tchip16 also features some directives to make your life easier:
+
+EQU -- name equ val
+Allows you to define a constant for use in instructions.
+
+DB -- db val1 [...]
+      db "string"
+Allows you to store either bytes or a string at this location in your code.

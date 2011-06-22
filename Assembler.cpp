@@ -23,32 +23,20 @@ Assembler::Assembler() {
 	caseSens = false;
 	allowObs = false;
 	writeMmap = false;
+
+	std::cout	<< "tchip16 -- a Chip16 assembler\n"
+				<< "(C) 2011 tykel\n\n";
 }
 
 Assembler::~Assembler() {
 
 }
 
-/*bool Assembler::openFile(const char* fn) {
-	std::ifstream in(fn);
-	if(in.is_open()) {
-		std::stringstream file;
-		file << in.rdbuf();
-		//std::string file((std::istreambuf_iterator<char>(in)), 
-		//				  std::istreambuf_iterator<char>());
-		input.insert(0,file.str());
-		in.close();
-		return true;
-	}
-	return false;
-} */
-
 void Assembler::setOutputFile(const char* fn) {
 	outputFP = fn;
 }
 
 void Assembler::tokenize(const char* fn) {
-	int lineNbAlt = -1;
 	std::string f(fn);
 	// Check for import cycles
 	for(unsigned i=0; i<filesImp.size(); i++) {
@@ -67,6 +55,7 @@ void Assembler::tokenize(const char* fn) {
 		Error err(ERR_IO);
 	// Get a line
 	std::string ln;
+	int lineNbAlt = -1;
 	while(std::getline(file,ln)) {
 		lineNbAlt++;
 		// Strip ',' from the string
@@ -102,10 +91,23 @@ void Assembler::tokenize(const char* fn) {
 				//TODO: importing file!
 				totalBytes += atoi_t(toks[3]) - atoi_t(toks[2]);
 			}
+			else if(toks.size() > 1 && toks[1] == "equ") {
+				if(toks.size() < 3)
+					Error err(ERR_OP_ARGS,f,lineNbAlt);
+				else if(toks.size() > 3)
+					Error err(ERR_TOO_MANY,f,lineNbAlt);
+				consts[toks[0]] = atoi_t(toks[2]);
+			}
 			else {
-				tokens.push_back(toks);
-				lineNb++;
-				totalBytes += 4;
+				if(toks[0].size() > 1 &&
+				   toks[0][0] == ':' || toks[0][toks[0].size()-1] == ':') {
+					   labels[toks[0]] = totalBytes;
+				}
+				if(!toks.empty()) {
+					tokens.push_back(toks);
+					lineNb++;
+					totalBytes += 4;
+				}
 			}
 		}
 	}
@@ -141,12 +143,24 @@ void Assembler::debugOut() {
 	if(tokens.empty())
 		return;
 	std::cout << "Total size: " << totalBytes << "B\n";
-	// DEBUG: print out what has been stored
+	// Print out what has been stored
+	std::cout << "\n\nToken array:\n";
 	for(unsigned i=0; i<tokens.size(); i++) {
 		for(unsigned j=0; j<tokens[i].size(); j++) {
-			std::cout << tokens[i][j] << "_";
+			std::cout << "[ " << tokens[i][j] << " ] ";
 		}
 		std::cout << std::endl;
+	}
+	// Print out label mappings
+	std::cout << "\n\nLabel mapping:\n";
+	std::map<std::string,int>::iterator it;
+	for(it = labels.begin(); it != labels.end(); it++) {
+		std::cout << it->first << " : " << it->second << "\n";
+	}
+	// Print out equ mappings
+	std::cout << "\n\nEqu mapping:\n";
+	for(it = consts.begin(); it != consts.end(); it++) {
+		std::cout << it->first << " : " << it->second << "\n";
 	}
 }
 

@@ -29,7 +29,7 @@ int main(int argc, char* argv[]) {
 
 	// Parse the command line arguments
 	if(argc > 2) {
-		for(int i=2; i<argc; i++) {
+		for(int i=2; i<argc; ++i) {
 			std::string arg(argv[i]);
 			if(arg.length() > 1 && arg[0] == '-') {
 				if(arg[1] == 'o' || arg[1] == 'O') {
@@ -88,7 +88,7 @@ void helpOut() {
 		"\t-z: if assembled code < 64K, zero rest up to 64K\n"
 		"\t-a: align labels to 4-byte boundaries\n"
 		"\t-c: make labels and constants case-sensitive\n"
-		"\t-b: use backwards compatibility (allow use of obsolete opcodes)\n"
+		"\t-b: use backwards compatibility (force use of obsolete opcodes)\n"
 		"\t-m: output mmap.txt which displays the address of each label\n"
 		"\t-h: displays help text\n\n";
 

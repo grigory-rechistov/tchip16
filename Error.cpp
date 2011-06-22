@@ -75,6 +75,10 @@ void Error::print(ERROR code) {
 	case ERR_NAN:
 		std::cout	<< "Not a number #(" << code << ")\n"
 					<< "(possibly undeclared label)\n";
+	case ERR_NUM_OVERFLOW:
+		std::cout	<< "Number overflow #(" << code << ")\n"
+					<< "(value is too large for datatype)\n";
+		break;
 	default:
 		std::cout << "Unknown error encountered #(" << code << ")\n";
 		break;

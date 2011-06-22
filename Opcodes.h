@@ -24,7 +24,9 @@ enum chip16_opcodes {
 	MULI =	0x90, MUL_R2, MUL_R3,
 	DIVI =	0xA0, DIV_R2, DIV_R3,
 	SHL_N = 0xB0, SAL_N = 0xB0, SHR_N, SAR_N, SHL_R, SAL_R=0xB3, SHR_R, SAR_R,
-	PUSH =	0xC0, POP, PUSHALL, POPALL
+	PUSH =	0xC0, POP, PUSHALL, POPALL,
+	// Pseudo-opcodes
+	DB =	0xFA, DB_STR
 };
 
 #endif

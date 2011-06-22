@@ -67,6 +67,8 @@ int main(int argc, char* argv[]) {
 		else
 			tc16->tokenize(argv[1]);
 	}
+	else
+		Error err(ERR_NO_INPUT);
 
 #ifdef _DEBUG
 	tc16->debugOut();

@@ -64,14 +64,14 @@ private:
 
 	void db(std::vector<u8>&);
 	void db(std::string&);
-
+	// Adapted from prev. ver., useful str->int conversion
 	u16 atoi_t(std::string&);
 
 	// Parsed source file
 	lineList tokens;
 	// Lookup tables
-	std::map<char*,int> labels;
-	std::map<char*,int> consts;
+	std::map<std::string,int> labels;
+	std::map<std::string,int> consts;
 	// Output byte buffer
 	u8* buffer;
 	// Output filename

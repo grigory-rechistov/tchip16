@@ -33,7 +33,7 @@ class Assembler {
 public:
 	Assembler();
 	~Assembler();
-
+	// Change output name
 	void setOutputFile(const char*);
 	// Build token array
 	void tokenize(const char*);
@@ -49,9 +49,7 @@ public:
 	void debugOut();
 
 private:
-	// Import a binary file (IMPORTBIN)
-	bool importBin(const std::string&, int, int, const std::string&);
-
+	// Instructions
 	void writeOp(line&);
 	void op_void(OPCODE);				// nop, cls, vblnk, ret, snd0, pushall, popall
 	void op_imm(OPCODE,u16);			// jmp, jmc, jmz, jx, call, cx, spr, snd[1-3],
@@ -61,7 +59,7 @@ private:
 	void op_r_n(OPCODE,u8,u8);			// shl, shr, sal, sar
 	void op_r_r_imm(OPCODE,u8,u8,u16);	// drw, jme
 	void op_r_r_r(OPCODE,u8,u8,u8);		// add, sub, mul, div, cmp, and, tst, or, xor
-
+	// Pseudo-instructions
 	void db(std::vector<u8>&);
 	void db(std::string&);
 	// Adapted from prev. ver., useful str->int conversion
@@ -69,11 +67,10 @@ private:
 
 	// Parsed source file
 	lineList tokens;
-	// Lookup tables
-	std::map<std::string,int> labels;
+	// Imported binary files list
+	lineList imports;
+	// Lookup table
 	std::map<std::string,int> consts;
-	// Output byte buffer
-	u8* buffer;
 	// Output filename
 	std::string outputFP;
 	// Keep track of progress

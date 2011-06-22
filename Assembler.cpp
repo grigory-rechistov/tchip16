@@ -14,7 +14,7 @@
 #include "Assembler.h"
 
 Assembler::Assembler() {
-	buffer = new u8[MEM_SIZE]();
+	// Initialize
 	lineNb = 0;
 	curAddress = 0;
 	totalBytes = 0;
@@ -23,7 +23,8 @@ Assembler::Assembler() {
 	caseSens = false;
 	allowObs = false;
 	writeMmap = false;
-
+	outputFP = "output.c16";
+	// Say hello
 	std::cout	<< "tchip16 -- a Chip16 assembler\n"
 				<< "(C) 2011 tykel\n\n";
 }
@@ -88,7 +89,7 @@ void Assembler::tokenize(const char* fn) {
 					Error err(ERR_OP_ARGS,f,lineNbAlt);
 				else if(toks.size() > 5)
 					Error err(ERR_TOO_MANY,f,lineNbAlt);
-				//TODO: importing file!
+				imports.push_back(toks);
 				totalBytes += atoi_t(toks[3]) - atoi_t(toks[2]);
 			}
 			else if(toks.size() > 1 && toks[1] == "equ") {
@@ -96,13 +97,26 @@ void Assembler::tokenize(const char* fn) {
 					Error err(ERR_OP_ARGS,f,lineNbAlt);
 				else if(toks.size() > 3)
 					Error err(ERR_TOO_MANY,f,lineNbAlt);
-				consts[toks[0]] = atoi_t(toks[2]);
+				// Handle case sensitivity
+				std::string cnst = toks[0];
+				if(!caseSens)
+					std::transform(cnst.begin(),cnst.end(),cnst.begin(),::tolower);
+				// Add to map
+				consts[cnst] = atoi_t(toks[2]);
 			}
 			else {
 				if(toks[0].size() > 1 &&
 				   toks[0][0] == ':' || toks[0][toks[0].size()-1] == ':') {
-					   labels[toks[0]] = totalBytes;
+					   // Handle case sensitivity
+					   std::string label = toks[0];
+					   if(!caseSens)
+						   std::transform(label.begin(),label.end(),label.begin(),::tolower);
+					   // Add to map
+					   consts[label] = totalBytes;
+					   // Remove token
+					   toks.erase(toks.begin());
 				}
+				// If after all this there is something left, add it
 				if(!toks.empty()) {
 					tokens.push_back(toks);
 					lineNb++;
@@ -140,6 +154,7 @@ void Assembler::putMmap() {
 }
 
 void Assembler::debugOut() {
+	std::cout << "\n-- Debug output information:\n\n";
 	if(tokens.empty())
 		return;
 	std::cout << "Total size: " << totalBytes << "B\n";
@@ -151,21 +166,20 @@ void Assembler::debugOut() {
 		}
 		std::cout << std::endl;
 	}
-	// Print out label mappings
-	std::cout << "\n\nLabel mapping:\n";
-	std::map<std::string,int>::iterator it;
-	for(it = labels.begin(); it != labels.end(); it++) {
-		std::cout << it->first << " : " << it->second << "\n";
+	// Print out imports
+	std::cout << "\n\nImport list:\n";
+	for(unsigned i=0; i<imports.size(); i++) {
+		for(unsigned j=1; j<imports[i].size(); j++) {
+			std::cout << "[ " << imports[i][j] << " ] ";
+		}
+		std::cout << std::endl;
 	}
-	// Print out equ mappings
-	std::cout << "\n\nEqu mapping:\n";
+	// Print out consts mappings
+	std::cout << "\n\nConsts mapping:\n";
+	std::map<std::string,int>::iterator it;
 	for(it = consts.begin(); it != consts.end(); it++) {
 		std::cout << it->first << " : " << it->second << "\n";
 	}
-}
-
-bool Assembler::importBin(const std::string& fn, int offs, int n, const std::string& label) {
-	return false;
 }
 
 void Assembler::writeOp(std::vector<std::string>& tokens) {

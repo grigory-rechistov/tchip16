@@ -13,13 +13,9 @@ Error::Error(ERROR code) {
 	print(code);
 }
 
-Error::Error(ERROR code, std::string& fn, int lineNb) {
-	std::cout << "File: " << fn.c_str() << "\nLine: " << lineNb << "\n";
-	print(code);
-}
-
-Error::Error(ERROR code, std::string& num) {
-	std::cout << num.c_str() << ": ";
+Error::Error(ERROR code, std::string& fn, int lineNb, std::string& str) {
+	std::cout << "File: " << fn.c_str() << "\nLine: " << lineNb << "\n"
+		<< str.c_str() << " : ";
 	print(code);
 }
 
@@ -78,6 +74,10 @@ void Error::print(ERROR code) {
 	case ERR_NUM_OVERFLOW:
 		std::cout	<< "Number overflow #(" << code << ")\n"
 					<< "(value is too large for datatype)\n";
+		break;
+	case ERR_STR_NOTENDED:
+		std::cout	<< "String not ended #(" << code << ")\n"
+					<< "(missing a \")\n";
 		break;
 	default:
 		std::cout << "Unknown error encountered #(" << code << ")\n";

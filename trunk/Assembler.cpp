@@ -15,12 +15,12 @@
 
 Assembler::Assembler() {
 	// Initialize
+	initMaps();
 	lineNb = 0;
 	curAddress = 0;
 	totalBytes = 0;
 	zeroFill = false;
 	alignLabels = false;
-	caseSens = false;
 	allowObs = false;
 	writeMmap = false;
 	outputFP = "output.c16";
@@ -99,27 +99,30 @@ void Assembler::tokenize(const char* fn) {
 					Error err(ERR_TOO_MANY,f,lineNbAlt);
 				else if(atoi_t(toks[2]) > 0xFFFF)
 					Error err(ERR_NUM_OVERFLOW,f,lineNbAlt);
-				// Handle case sensitivity
-				std::string cnst = toks[0];
-				if(!caseSens)
-					std::transform(cnst.begin(),cnst.end(),cnst.begin(),::tolower);
 				// Add to map
-				consts[cnst] = atoi_t(toks[2]);
+				consts[toks[0]] = atoi_t(toks[2]);
 			}
 			else {
 				if(toks[0].size() > 1 &&
 				   toks[0][0] == ':' || toks[0][toks[0].size()-1] == ':') {
-					   // Handle case sensitivity
-					   std::string label = toks[0];
-					   if(!caseSens)
-						   std::transform(label.begin(),label.end(),label.begin(),::tolower);
 					   // Add to map
-					   consts[label] = totalBytes;
+					   consts[toks[0].substr(0,toks[0].size()-1)] = totalBytes;
 					   // Remove token
 					   toks.erase(toks.begin());
 				}
 				// If after all this there is something left, add it
 				if(!toks.empty()) {
+					// Ensure the mnemonic is lowercase
+					std::transform(toks[0].begin(),toks[0].end(),toks[0].begin(),::tolower);
+					// If the mnemonic uses a conditional type, fix it
+					if(toks[0].size() > 1 &&
+						(toks[0][0] == 'j' && toks[0][1] != 'm') ||
+						(toks[0][0] == 'c' && toks[0] != "call" 
+							&& toks[0] != "cls" && toks[0] != "cmpi" && toks[0] != "cmp")) {
+							toks.insert(toks.begin()+1,toks[0].substr(1));
+							toks[0] = toks[0].substr(0,1);
+							toks[0].append("x");
+					}
 					tokens.push_back(toks);
 					lineNb++;
 					totalBytes += 4;
@@ -139,22 +142,153 @@ void Assembler::outputFile() {
 	for(unsigned i=0; i<tokens.size(); ++i) {
 		u8 opcode = opMap[tokens[i][0]];
 		u16 imm;
+		u8 n, n1, n2;
 		switch(opcode) {
-		case NOP: case CLS: case VBLNK: case SND0: case PUSHALL: case POPALL:
+		case NOP: case CLS: case VBLNK: case SND0: case PUSHALL: case POPALL: case RET:
+			if(tokens[i].size() > 1)
+				Error err(ERR_OP_ARGS,tokens[i][0]);
 			op_void(out,opcode);
 			break;
-		case JMP_I: case JMC: case Jx: case CALL_I: case Cx: 
-		case SPR: case SND1: case SND2: case SND3:
-			imm = atoi_t(tokens[i][1]);
-			if(consts.find(tokens[i][1]) != consts.end())
+		case JMP_I: case JMC: case CALL_I: 
+		case SPR: case SND1: case SND2: case SND3: {
+			if(tokens[i].size() > 2 || tokens[i].size() < 2)
+				Error err(ERR_OP_ARGS,tokens[i][0]);
+			// Overflow check on imm
+			if(consts.find(tokens[i][1]) != consts.end()) {
+				if(consts[tokens[i][1]] > 0xFFFF)
+					Error err(ERR_NUM_OVERFLOW,tokens[i][1]);
 				imm = consts[tokens[i][1]];
+			}
+			else
+				imm = atoi_t(tokens[i][1]);
 			op_imm(out,opcode,imm);
 			break;
-		case BGC:
-			op_n(out,opcode,(u8)atoi_t(tokens[i][1]));
+		}
+		case Jx: case Cx:
+			if(tokens[i].size() > 3 || tokens[i].size() < 3)
+				Error err(ERR_OP_ARGS,tokens[i][0]);
+			// Overflow check on n
+			if(condMap.find(tokens[i][1]) != condMap.end())
+				n = condMap[tokens[i][1]];
+			else
+				Error err(ERR_OP_UNKNOWN,"j"+tokens[i][1]+" / c"+tokens[i][1]);
+			// Overflow check on imm
+			if(consts.find(tokens[i][2]) != consts.end()) {
+				if(consts[tokens[i][2]] > 0xFFFF)
+					Error err(ERR_NUM_OVERFLOW,tokens[i][2]);
+				imm = consts[tokens[i][1]];
+			}
+			else
+				imm = atoi_t(tokens[i][2]);
+			op_n_imm(out,opcode,n,imm);
 			break;
-		// TODO: All the other opcode types
-		// ...
+		case BGC:
+			if(tokens[i].size() > 2 || tokens[i].size() < 2)
+				Error err(ERR_OP_ARGS,tokens[i][0]);
+			// Overflow check on n
+			if(consts.find(tokens[i][1]) != consts.end()) {
+				if(consts[tokens[i][1]] > 0xFF)
+					Error err(ERR_NUM_OVERFLOW,tokens[i][1]);
+				n = consts[tokens[i][1]];
+			}
+			else
+				n = (u8)atoi_t(tokens[i][1]);
+			op_n(out,opcode,n);
+			break;
+		case FLIP:
+			if(tokens[i].size() > 3 || tokens[i].size() < 3)
+				Error err(ERR_OP_ARGS,tokens[i][0]);
+			// Overflow check on n1
+			if(consts.find(tokens[i][1]) != consts.end()) {
+				if(consts[tokens[i][1]] > 0xFF)
+					Error err(ERR_NUM_OVERFLOW,tokens[i][1]);
+				n1 = consts[tokens[i][1]];
+			}
+			else
+				n1 = (u8)atoi_t(tokens[i][1]);
+			// Overflow check on n2
+			if(consts.find(tokens[i][2]) != consts.end()) {
+				if(consts[tokens[i][2]] > 0xFF)
+					Error err(ERR_NUM_OVERFLOW,tokens[i][1]);
+				n2 = consts[tokens[i][1]];
+			}
+			else
+				n2 = (u8)atoi_t(tokens[i][2]);
+			op_n_n(out,opcode,n1,n2);
+			break;
+		case CALL_R: case JMP_R: case PUSH: case POP:
+			if(tokens[i].size() > 2 || tokens[i].size() < 2)
+				Error err(ERR_OP_ARGS,tokens[i][0]);
+			op_r(out,opcode,regMap[tokens[i][1]]);
+			break;
+		case RND: case LDI_R: case LDI_SP: case LDM_I: case STM_I: case ADDI: case SUBI: 
+		case MULI: case DIVI: case CMPI: case ANDI: case TSTI: case ORI: case XORI:
+			if(tokens[i].size() > 3 || tokens[i].size() < 3)
+				Error err(ERR_OP_ARGS,tokens[i][0]);
+			// Overflow check on imm
+			if(consts.find(tokens[i][2]) != consts.end()) {
+				if(consts[tokens[i][2]] > 0xFFFF)
+					Error err(ERR_NUM_OVERFLOW,tokens[i][2]);
+				imm = consts[tokens[i][2]];
+			}
+			else
+				imm = atoi_t(tokens[i][2]);
+			op_r_imm(out,opcode,(u8)regMap[tokens[i][1]],imm);
+			break;
+		case SHL_N: case SHR_N: case SAR_N:
+			if(tokens[i].size() > 3 || tokens[i].size() < 3)
+				Error err(ERR_OP_ARGS,tokens[i][0]);
+			// Overflow check on n
+			if(consts.find(tokens[i][2]) != consts.end()) {
+				if(consts[tokens[i][2]] > 0xFF)
+					Error err(ERR_NUM_OVERFLOW,tokens[i][2]);
+				n = consts[tokens[i][2]];
+			}
+			else
+				n = (u8)atoi_t(tokens[i][2]);
+			op_r_n(out,opcode,(u8)regMap[tokens[i][1]],n);
+			break;
+		case DRW_I: case JME:
+			if(tokens[i].size() > 4 || tokens[i].size() < 4)
+				Error err(ERR_OP_ARGS,tokens[i][0]);
+			// Overflow check on imm
+			if(consts.find(tokens[i][3]) != consts.end()) {
+				if(consts[tokens[i][3]] > 0xFF)
+					Error err(ERR_NUM_OVERFLOW,tokens[i][3]);
+				imm = consts[tokens[i][3]];
+			}
+			else
+				imm = atoi_t(tokens[i][3]);
+			op_r_r_imm(out,opcode,(u8)regMap[tokens[i][1]],
+				(u8)regMap[tokens[i][2]],imm);
+			break;
+		case ADD_R2: case SUB_R2: case MUL_R2: case DIV_R2: case AND_R2: case OR_R2:
+		case XOR_R2: case SHL_R: case SHR_R: case SAR_R: case LDM_R: case MOV: 
+		case STM_R: case CMP: case TST:
+			if(tokens[i].size() > 3 || tokens[i].size() < 3)
+				Error err(ERR_OP_ARGS,tokens[i][0]);
+			op_r_r(out,opcode,(u8)regMap[tokens[i][1]],(u8)regMap[tokens[i][2]]);
+			break;
+		case ADD_R3: case SUB_R3: case MUL_R3: case DIV_R3: case AND_R3: case OR_R3:
+		case XOR_R3: case DRW_R:
+			if(tokens[i].size() > 4 || tokens[i].size() < 4)
+				Error err(ERR_OP_ARGS,tokens[i][0]);
+			op_r_r_r(out,opcode,(u8)regMap[tokens[i][1]],
+				(u8)regMap[tokens[i][2]],(u8)regMap[tokens[i][3]]);
+			break;
+		case DB: {
+			if(tokens[i].size() == 1)
+				Error err(ERR_OP_ARGS,tokens[i][0]);
+			std::vector<u8> vals;
+			for(unsigned j=1; j<tokens[i].size(); ++j) {
+				u16 val = atoi_t(tokens[i][j]);
+				if(val > 0xFF)
+					Error err(ERR_NUM_OVERFLOW,tokens[i][0]);
+				vals.push_back((u8)val);
+			}
+			db(out,vals);
+			break;
+		}
 		default:
 			Error err(ERR_OP_UNKNOWN,tokens[i][0]);
 			break;
@@ -183,10 +317,6 @@ void Assembler::useAlign() {
 	alignLabels = true;
 }
 
-void Assembler::useCaseSens() {
-	caseSens = true;
-}
-
 void Assembler::useObsolete() {
 	allowObs = true;
 }
@@ -200,8 +330,13 @@ void Assembler::debugOut() {
 	if(tokens.empty())
 		return;
 	std::cout << "Total size: " << totalBytes << "B\n";
+	// Print out what files have been used
+	std::cout << "Source files:\n";
+	for(unsigned i=0; i<filesImp.size(); ++i) {
+		std::cout << filesImp[i] << "\n";
+	}
 	// Print out what has been stored
-	std::cout << "\n\nToken array:\n";
+	std::cout << "\nToken array:\n";
 	for(unsigned i=0; i<tokens.size(); ++i) {
 		for(unsigned j=0; j<tokens[i].size(); j++) {
 			std::cout << "[ " << tokens[i][j] << " ] ";
@@ -209,12 +344,11 @@ void Assembler::debugOut() {
 		std::cout << std::endl;
 	}
 	// Print out imports
-	std::cout << "\n\nImport list:\n";
+	std::cout << "\nImport list:\n";
 	for(unsigned i=0; i<imports.size(); ++i) {
 		for(unsigned j=1; j<imports[i].size(); j++) {
 			std::cout << "[ " << imports[i][j] << " ] ";
 		}
-		std::cout << std::endl;
 	}
 	// Print out consts mappings
 	std::cout << "\n\nConsts mapping:\n";
@@ -222,42 +356,127 @@ void Assembler::debugOut() {
 	for(it = consts.begin(); it != consts.end(); it++) {
 		std::cout << it->first << " : " << it->second << "\n";
 	}
+	std::cout << std::endl;
 }
+
+// Methods that write instructions to disk 
 
 inline void Assembler::op_void(std::ofstream& bin, OPCODE op) {
-	
+	char out[4];
+	out[0] = op;
+	out[1] = 0; out[2] = 0; out[3] = 0;
+	bin.write(out,4);
 }
 
-inline void Assembler::op_imm(std::ofstream& bin, OPCODE op,u16 imm) {
-	
+inline void Assembler::op_imm(std::ofstream& bin, OPCODE op, u16 imm) {
+	char out[4];
+	out[0] = op;
+	out[1] = 0;
+	out[2] = imm & 0xFF;
+	out[3] = imm >> 8;
+	bin.write(out,4);
 }
 
-inline void Assembler::op_n(std::ofstream& bin, OPCODE op,u8 n) {
+inline void Assembler::op_n_imm(std::ofstream& bin, OPCODE op, u8 n, u16 imm) {
+	char out[4];
+	out[0] = op;
+	out[1] = n;	
+	out[2] = imm & 0xFF;
+	out[3] = imm >> 8;
+	bin.write(out,4);
+}
 
+inline void Assembler::op_n(std::ofstream& bin, OPCODE op, u8 n) {
+	char out[4];
+	out[0] = op;
+	out[1] = 0;
+	out[2] = n; out[3] = 0;
+	bin.write(out,4);
 }
 
 inline void Assembler::op_n_n(std::ofstream& bin, OPCODE op,u8 n1,u8 n2) {
+	char out[4];
+	out[0] = op;
+	out[1] = 0; out[2] = 0;
+	// Do some error checking
+	if(n1 == 0) {
+		if(n2 == 0)
+			out[3] = 0;
+		else if(n2 == 1)
+			out[3] = 1;
+		else
+			Error err(ERR_OP_ARGS,std::string("FLIP"));
+	}
+	else if(n1 == 1) {
+		if(n2 == 0)
+			out[3] = 2;
+		else if(n2 == 1)
+			out[3] = 1;
+		else
+			Error err(ERR_OP_ARGS,std::string("FLIP"));
+	}
+	else
+		Error err(ERR_OP_ARGS,std::string("FLIP"));
 
+	bin.write(out,4);
+}
+
+inline void Assembler::op_r(std::ofstream& bin, OPCODE op, u8 r) {
+	char out[4];
+	out[0] = op;
+	out[1] = r;
+	out[2] = 0; out[3] = 0;
+	bin.write(out,4);
 }
 
 inline void Assembler::op_r_imm(std::ofstream& bin, OPCODE op,u8 r,u16 imm) {
-
+	char out[4];
+	out[0] = op;
+	out[1] = r;
+	out[2] = imm & 0xFF;
+	out[3] = imm >> 8;
+	bin.write(out,4);
 }
 
 inline void Assembler::op_r_n(std::ofstream& bin, OPCODE op,u8 r,u8 n) {
+	char out[4];
+	out[0] = op;
+	out[1] = r;
+	out[2] = n; out[3] = 0;
+	bin.write(out,4);
+}
 
+inline void Assembler::op_r_r(std::ofstream& bin, OPCODE op, u8 r1, u8 r2) {
+	char out[4];
+	out[0] = op;
+	out[1] = (r2 << 4) | r1;
+	out[2] = 0; out[3] = 0;
+	bin.write(out,4);
 }
 
 inline void Assembler::op_r_r_imm(std::ofstream& bin, OPCODE op, u8 r1,u8 r2,u16 imm) {
-
+	char out[4];
+	out[0] = op;
+	out[1] = (r2 << 4) | r1;
+	out[2] = imm & 0xFF;
+	out[3] = imm >> 8;
+	bin.write(out,4);
 }
 
 inline void Assembler::op_r_r_r(std::ofstream& bin, OPCODE op, u8 r1,u8 r2,u8 r3) {
-
+	char out[4];
+	out[0] = op;
+	out[1] = (r2 << 4) | r1;
+	out[2] = r3;
+	out[3] = 0;
+	bin.write(out,4);
 }
 
 void Assembler::db(std::ofstream& bin, std::vector<u8>& bytes) {
-
+	for(unsigned i=0; i<bytes.size(); ++i) {
+		char out = bytes[i];
+		bin.write(&out,1);
+	}
 }
 
 void Assembler::db(std::ofstream& bin, std::string& str) {
@@ -285,7 +504,7 @@ u16 Assembler::atoi_t(std::string& str)
 			str = str.substr(0,str.size()-1);
 		// Number is bigger than 16-bit, not allowed
 		if(str.size() > 4)
-			str = str.substr(0,4);
+			Error err(ERR_NUM_OVERFLOW,str);
 		u16 val = 0;
 		for(size_t i=0; i<str.size(); ++i) {
 			char c = str[i];
@@ -308,6 +527,8 @@ u16 Assembler::atoi_t(std::string& str)
 			else
 				Error err(ERR_NAN,str);
 		}
+		if(val > 0xFFFF)
+			Error err(ERR_NUM_OVERFLOW,str);
 		return val;
 	}
 }
@@ -369,13 +590,13 @@ void Assembler::initMaps() {
 	opMap["div_r2"] = DIV_R2;
 	opMap["div_r3"] = DIV_R3;
 	opMap["shl_n"] = SHL_N;
-	opMap["sal_n"] = SAL_N;
+	opMap["sal_n"] = SHL_N;
 	opMap["shr_n"] = SHR_N;
 	opMap["sar_n"] = SAR_N;
 	opMap["shl_r"] = SHL_R;
-	opMap["sal_r"] = SAL_R;
+	opMap["sal_r"] = SHL_R;
 	opMap["shr_r"] = SHR_R;
-	opMap["sal_r"] = SAL_R;
+	opMap["sal_r"] = SAR_R;
 	opMap["push"] = PUSH;
 	opMap["pop"] = POP;
 	opMap["pushall"] = PUSHALL;
@@ -399,5 +620,182 @@ void Assembler::initMaps() {
 	regMap["rd"] = 0xD;
 	regMap["re"] = 0xE;
 	regMap["rf"] = 0xF;
+	regMap["r10"] = 0xA;
+	regMap["r11"] = 0xB;
+	regMap["r12"] = 0xC;
+	regMap["r13"] = 0xD;
+	regMap["r14"] = 0xE;
+	regMap["r15"] = 0xF;
 
+	condMap["z"] = 0x0;
+	condMap["nz"] = 0x1;
+	condMap["n"] = 0x2;
+	condMap["nn"] = 0x3;
+	condMap["p"] = 0x4;
+	condMap["o"] = 0x5;
+	condMap["no"] = 0x6;
+	condMap["a"] = 0x7;
+	condMap["ae"] = 0x8;
+	condMap["nc"] = 0x8;
+	condMap["b"] = 0x9;
+	condMap["c"] = 0x9;
+	condMap["be"] = 0xA;
+	condMap["g"] = 0xB;
+	condMap["ge"] = 0xC;
+	condMap["l"] = 0xD;
+	condMap["le"] = 0xE;
+	
+	mnemMap["drw"] = drw;
+	mnemMap["jmp"] = jmp;
+	mnemMap["call"] = call;
+	mnemMap["ldi"] = ldi;
+	mnemMap["ldm"] = ldm;
+	mnemMap["stm"] = stm;
+	mnemMap["add"] = add;
+	mnemMap["sub"] = sub;
+	mnemMap["and"] = and;
+	mnemMap["or"] = or;
+	mnemMap["xor"] = xor;
+	mnemMap["mul"] = mul;
+	mnemMap["div"] = _div;
+	mnemMap["shl"] = shl;
+	mnemMap["sal"] = sal;
+	mnemMap["shr"] = shr;
+	mnemMap["sar"] = sar;
+
+}
+
+void Assembler::fixOps() {
+	for(unsigned i=0; i<tokens.size(); ++i) {
+		if(opMap.find(tokens[i][0]) == opMap.end()) {
+			switch(mnemMap[tokens[i][0]]) {
+			case drw:
+				if(tokens[i].size() != 4)
+					Error err(ERR_OP_ARGS,tokens[i][0]);
+				if(tokens[i][3][0] == 'r')
+					tokens[i][0] = "drw_r";
+				else
+					tokens[i][0] = "drw_i";
+				break;
+			case jmp:
+				if(tokens[i].size() != 2)
+					Error err(ERR_OP_ARGS,tokens[i][0]);
+				if(tokens[i][1][0] == 'r')
+					tokens[i][0] = "jmp_r";
+				else
+					tokens[i][0] = "jmp_i";
+				break;
+			case call:
+				if(tokens[i].size() != 2)
+					Error err(ERR_OP_ARGS,tokens[i][0]);
+				if(tokens[i][1][0] == 'r')
+					tokens[i][0] = "call_r";
+				else
+					tokens[i][0] = "call_i";
+				break;
+			case ldi:
+				if(tokens[i].size() != 3)
+					Error err(ERR_OP_ARGS,tokens[i][0]);
+				if(tokens[i][1][0] == 'r')
+					tokens[i][0] = "ldi_r";
+				else
+					tokens[i][0] = "ldi_sp";
+				break;
+			case ldm:
+				if(tokens[i].size() != 3)
+					Error err(ERR_OP_ARGS,tokens[i][0]);
+				if(tokens[i][1][0] == 'r')
+					tokens[i][0] = "ldm_r";
+				else
+					tokens[i][0] = "ldm_i";
+				break;
+			case stm:
+				if(tokens[i].size() != 3)
+					Error err(ERR_OP_ARGS,tokens[i][0]);
+				if(tokens[i][1][0] == 'r')
+					tokens[i][0] = "stm_r";
+				else
+					tokens[i][0] = "stm_i";
+				break;
+			case add:
+				if(tokens[i].size() == 3)
+					tokens[i][0] = "add_r2";
+				else if(tokens[i].size() == 4)
+					tokens[i][0] = "add_r3";
+				else
+					Error err(ERR_OP_ARGS,tokens[i][0]);
+				break;
+			case sub:
+				if(tokens[i].size() == 3)
+					tokens[i][0] = "sub_r2";
+				else if(tokens[i].size() == 4)
+					tokens[i][0] = "sub_r3";
+				else
+					Error err(ERR_OP_ARGS,tokens[i][0]);
+				break;
+			case and:
+				if(tokens[i].size() == 3)
+					tokens[i][0] = "and_r2";
+				else if(tokens[i].size() == 4)
+					tokens[i][0] = "and_r3";
+				else
+					Error err(ERR_OP_ARGS,tokens[i][0]);
+				break;
+			case or:
+				if(tokens[i].size() == 3)
+					tokens[i][0] = "or_r2";
+				else if(tokens[i].size() == 4)
+					tokens[i][0] = "or_r3";
+				else
+					Error err(ERR_OP_ARGS,tokens[i][0]);
+				break;
+			case xor:
+				if(tokens[i].size() == 3)
+					tokens[i][0] = "xor_r2";
+				else if(tokens[i].size() == 4)
+					tokens[i][0] = "xor_r3";
+				else
+					Error err(ERR_OP_ARGS,tokens[i][0]);
+				break;
+			case mul:
+				if(tokens[i].size() == 3)
+					tokens[i][0] = "mul_r2";
+				else if(tokens[i].size() == 4)
+					tokens[i][0] = "mul_r3";
+				else
+					Error err(ERR_OP_ARGS,tokens[i][0]);
+				break;
+			case _div:
+				if(tokens[i].size() == 3)
+					tokens[i][0] = "div_r2";
+				else if(tokens[i].size() == 4)
+					tokens[i][0] = "div_r3";
+				else
+					Error err(ERR_OP_ARGS,tokens[i][0]);
+				break;
+			case sal:
+				tokens[i][0] = "shl";
+			case shl:
+				if(tokens[i].size() != 3)
+					Error err(ERR_OP_ARGS,tokens[i][0]);
+				if(tokens[i][2][0] == 'r')
+					tokens[i][0] = "shl_r";
+				else
+					tokens[i][0] = "shl_n";
+				break;
+			case sar:
+				tokens[i][0] = "shr";
+			case shr:
+				if(tokens[i].size() != 3)
+					Error err(ERR_OP_ARGS,tokens[i][0]);
+				if(tokens[i][2][0] == 'r')
+					tokens[i][0] = "shr_r";
+				else
+					tokens[i][0] = "shr_n";
+				break;
+			default:
+				break;
+			}
+		}
+	}
 }

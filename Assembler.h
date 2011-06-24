@@ -84,6 +84,8 @@ private:
 
 	// Parsed source file
 	lineList tokens;
+	// Line numbers
+	std::vector<int> lines;
 	// Imported binary files list
 	lineList imports;
 	// Lookup table
@@ -93,10 +95,10 @@ private:
 	// Output filename
 	std::string outputFP;
 	// Keep track of progress
-	std::vector<std::string> filesImp;	// imported files (avoid cycles)
-	int lineNb;							// line nb in tokens array
-	int curAddress;						// address in output bin
-	int totalBytes;						// size in B of output bin
+	std::vector<std::string> filesImp, files;	// imported files (avoid cycles), file/line
+	unsigned lineNb;							// line nb in tokens array
+	int curAddress;								// address in output bin
+	int totalBytes;								// size in B of output bin
 	// Command line modifiers
 	bool zeroFill;
 	bool alignLabels;

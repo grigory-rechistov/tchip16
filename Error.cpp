@@ -19,7 +19,7 @@ Error::Error(ERROR code, std::string& fn, int lineNb) {
 }
 
 Error::Error(ERROR code, std::string& num) {
-	std::cout << "Number " << num.c_str() << ":\n";
+	std::cout << num.c_str() << ": ";
 	print(code);
 }
 

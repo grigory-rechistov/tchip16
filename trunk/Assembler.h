@@ -44,7 +44,6 @@ public:
 	// Command line modifier methods
 	void useZeroFill();
 	void useAlign();
-	void useObsolete();
 	void putMmap();
 	// Debug use
 	void debugOut();
@@ -103,7 +102,6 @@ private:
 	// Command line modifiers
 	bool zeroFill;
 	bool alignLabels;
-	bool allowObs;
 	bool writeMmap;
 };
 

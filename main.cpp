@@ -42,8 +42,6 @@ int main(int argc, char* argv[]) {
 					tc16->useZeroFill();
 				else if(arg[1] == 'a' || arg[1] == 'A')
 					tc16->useAlign();
-				else if(arg[1] == 'b' || arg[1] == 'B')
-					tc16->useObsolete();
 				else if(arg[1] == 'm' || arg[1] == 'M')
 					tc16->putMmap();
 				else if(arg[1] == 'h' || arg[1] == 'H') {
@@ -86,12 +84,11 @@ int main(int argc, char* argv[]) {
 }
 
 void helpOut() {
-	std::cout <<	"Usage: ./tchip16 <source> [-o dest][-z][-a][-b][-m][-h]\n\n"
+	std::cout <<	"Usage: ./tchip16 <source> [-o dest][-z][-a][-m][-h]\n\n"
 		"\tsource: the input source filename\n"
 		"\t-o: name the output file to dest\n"
 		"\t-z: if assembled code < 64K, zero rest up to 64K\n"
 		"\t-a: align labels to 4-byte boundaries\n"
-		"\t-b: use backwards compatibility (force use of obsolete opcodes)\n"
 		"\t-m: output mmap.txt which displays the address of each label\n"
 		"\t-h: displays help text\n\n";
 

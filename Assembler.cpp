@@ -21,7 +21,6 @@ Assembler::Assembler() {
 	totalBytes = 0;
 	zeroFill = false;
 	alignLabels = false;
-	allowObs = false;
 	writeMmap = false;
 	outputFP = "output.c16";
 	// Say hello
@@ -129,7 +128,17 @@ void Assembler::tokenize(const char* fn) {
 					tokens.push_back(toks);
 					lines.push_back(lineNbAlt);
 					files.push_back(std::string(fn));
-					totalBytes += 4;
+					if(toks[0] == "db" && toks.size() > 1) {
+						if(toks[1][0] == '"') {
+							for(unsigned i=1; i<toks.size(); i++)
+								totalBytes += toks[i].size();
+							totalBytes -= 2;
+						}
+						else
+							totalBytes += toks.size() - 1;
+					}
+					else
+						totalBytes += 4;
 				}
 			}
 		}
@@ -319,9 +328,18 @@ void Assembler::outputFile() {
 		imp.close();
 		out.write(buf,size);
 	}
+	// If -z, fill with 0's up to 64K
+	if(zeroFill) {
+		std::cout << "Zeroing memory up to 64K...\n";
+		char* zero = new char[0xFFFF-totalBytes];
+		for(int i=totalBytes; i<0xFFFF-totalBytes; ++i)
+			zero[i] = 0;
+		out.write(zero,0xFFFF-totalBytes);
+	}
 	out.close();
 	// If -m, output mmap.txt
 	if(writeMmap) {
+		std::cout << "Outputing mmap.txt...\n";
 		std::ofstream mmap("mmap.txt");
 		if(!mmap.is_open())
 			Error err(ERR_IO,std::string("All"),0,std::string("mmap.txt"));
@@ -346,10 +364,6 @@ void Assembler::useZeroFill() {
 
 void Assembler::useAlign() {
 	alignLabels = true;
-}
-
-void Assembler::useObsolete() {
-	allowObs = true;
 }
 
 void Assembler::putMmap() {

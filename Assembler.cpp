@@ -24,7 +24,7 @@ Assembler::Assembler() {
 	writeMmap = false;
 	outputFP = "output.c16";
 	// Say hello
-	std::cout	<< "tchip16 -- a Chip16 assembler\n"
+	std::cout	<< "\ntchip16 -- a Chip16 assembler\n"
 				<< "(C) 2011 tykel\n\n";
 }
 
@@ -88,8 +88,9 @@ void Assembler::tokenize(const char* fn) {
 					Error err(ERR_OP_ARGS,f,lineNbAlt,std::string("importbin"));
 				else if(toks.size() > 5)
 					Error err(ERR_TOO_MANY,f,lineNbAlt,std::string("importbin"));
+				toks.erase(toks.begin(),toks.begin()+1);
 				imports.push_back(toks);
-				totalBytes += atoi_t(toks[3]) - atoi_t(toks[2]);
+				totalBytes += atoi_t(toks[2]) - atoi_t(toks[1]);
 			}
 			else if(toks.size() > 1 && toks[1] == "equ") {
 				if(toks.size() < 3)
@@ -132,7 +133,7 @@ void Assembler::tokenize(const char* fn) {
 						if(toks[1][0] == '"') {
 							for(unsigned i=1; i<toks.size(); i++)
 								totalBytes += toks[i].size();
-							totalBytes -= 2;
+							totalBytes -= 1;
 						}
 						else
 							totalBytes += toks.size() - 1;
@@ -307,8 +308,8 @@ void Assembler::outputFile() {
 				Error err(ERR_OP_ARGS,files[lineNb],lines[lineNb],tokens[lineNb][0]);
 			std::string str;
 			for(unsigned j=1; j<tokens[lineNb].size(); ++j)
-				str.append(tokens[lineNb][j]);
-			db(out,str);
+				str.append(tokens[lineNb][j]+" ");
+			db(out,str.substr(0,str.size()-1));
 			break;
 					 }
 		default:
@@ -317,6 +318,7 @@ void Assembler::outputFile() {
 		}
 	}
 	// Output imported binaries
+	std::cout << "Output imports... ";
 	for(unsigned i=0; i<imports.size(); ++i) {
 		int size = atoi_t(imports[i][2]);
 		char* buf = new char[size]();
@@ -328,18 +330,20 @@ void Assembler::outputFile() {
 		imp.close();
 		out.write(buf,size);
 	}
+	std::cout << "OK\n";
 	// If -z, fill with 0's up to 64K
 	if(zeroFill) {
-		std::cout << "Zeroing memory up to 64K...\n";
-		char* zero = new char[0xFFFF-totalBytes];
-		for(int i=totalBytes; i<0xFFFF-totalBytes; ++i)
+		std::cout << "Zeroing memory up to 64K... ";
+		char* zero = new char[0x10000-totalBytes];
+		for(int i=0; i<0x10000-totalBytes; ++i)
 			zero[i] = 0;
-		out.write(zero,0xFFFF-totalBytes);
+		out.write(zero,0x10000-totalBytes);
+		std::cout << "OK\n";
 	}
 	out.close();
 	// If -m, output mmap.txt
 	if(writeMmap) {
-		std::cout << "Outputing mmap.txt...\n";
+		std::cout << "Outputing mmap.txt... ";
 		std::ofstream mmap("mmap.txt");
 		if(!mmap.is_open())
 			Error err(ERR_IO,std::string("All"),0,std::string("mmap.txt"));
@@ -354,7 +358,9 @@ void Assembler::outputFile() {
 			if(std::find(labelNames.begin(),labelNames.end(),itt->second) != labelNames.end())
 				mmap << itt->second << "\t: " << itt->first << std::endl;
 		}
+		mmap << "---------------------\n";
 		mmap.close();
+		std::cout << "OK\n";
 	}
 }
 
@@ -376,14 +382,14 @@ void Assembler::debugOut() {
 		return;
 	std::cout << "Total size: " << totalBytes << "B\n";
 	// Print out what files have been used
-	std::cout << "Source files:\n";
+	std::cout << "\nSource files:\n";
 	for(unsigned i=0; i<filesImp.size(); ++i) {
-		std::cout << filesImp[i] << "\n";
+		std::cout << "    " << filesImp[i] << "\n";
 	}
 	// Print out what has been stored
 	std::cout << "\nToken array:\n";
 	for(unsigned i=0; i<tokens.size(); ++i) {
-		std::cout << lines[i] << " : ";
+		std::cout << "    " << lines[i] << " : ";
 		for(unsigned j=0; j<tokens[i].size(); j++) {
 			std::cout << "[ " << tokens[i][j] << " ] ";
 		}
@@ -392,7 +398,8 @@ void Assembler::debugOut() {
 	// Print out imports
 	std::cout << "\nImport list:\n";
 	for(unsigned i=0; i<imports.size(); ++i) {
-		for(unsigned j=1; j<imports[i].size(); j++) {
+		std::cout << "    ";
+		for(unsigned j=0; j<imports[i].size(); j++) {
 			std::cout << "[ " << imports[i][j] << " ] ";
 		}
 	}
@@ -400,9 +407,9 @@ void Assembler::debugOut() {
 	std::cout << "\n\nConsts mapping:\n";
 	std::map<std::string,int>::iterator it;
 	for(it = consts.begin(); it != consts.end(); it++) {
-		std::cout << it->first << " : " << it->second << "\n";
+		std::cout << "    " << it->first << " : " << it->second << "\n";
 	}
-	std::cout << std::endl;
+	std::cout << "\n--\n\n";
 }
 
 // Methods that write instructions to disk 

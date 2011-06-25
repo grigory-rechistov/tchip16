@@ -9,7 +9,7 @@
 #ifndef _ERROR_H
 #define _ERROR_H
 
-#define WAIT char c; std::cin >> c
+#define WAIT char c; std::cin.get(&c,1)
 
 enum ERROR {
 	ERR_NONE, ERR_IO, ERR_CMD_NONE, ERR_NO_INPUT, ERR_CMD_UNKNOWN,  

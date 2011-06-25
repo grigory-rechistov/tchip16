@@ -63,9 +63,11 @@ int main(int argc, char* argv[]) {
 			helpOut();
 			return 0;
 		}
-		else
+		else {
 			// Do stuff!
 			tc16->tokenize(argv[1]);
+			std::cout << "Building tokens... OK\n";
+		}
 	}
 	else
 		Error err(ERR_NO_INPUT);
@@ -76,6 +78,8 @@ int main(int argc, char* argv[]) {
 	
 	tc16->fixOps();
 	tc16->outputFile();
+
+	std::cout << "\nBuild complete.";
 
 #ifdef _DEBUG
 	WAIT;

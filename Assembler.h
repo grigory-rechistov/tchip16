@@ -90,6 +90,7 @@ private:
 	lineList imports;
 	// Lookup table
 	std::map<std::string,int> consts;
+	std::vector<std::string> labelNames;
 	// Opcode map, register map,condition-code map, mnemonic map
 	std::map<std::string,int> opMap, regMap, condMap, mnemMap;
 	// Output filename

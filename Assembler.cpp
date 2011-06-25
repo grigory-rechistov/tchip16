@@ -105,8 +105,11 @@ void Assembler::tokenize(const char* fn) {
 			else {
 				if(toks[0].size() > 1 &&
 				   toks[0][0] == ':' || toks[0][toks[0].size()-1] == ':') {
+					   std::string label(toks[0].substr(0,toks[0].size()-1));
 					   // Add to map
-					   consts[toks[0].substr(0,toks[0].size()-1)] = totalBytes;
+					   consts[label] = totalBytes;
+					   // Add to label list
+					   labelNames.push_back(label);
 					   // Remove token
 					   toks.erase(toks.begin());
 				}
@@ -317,6 +320,24 @@ void Assembler::outputFile() {
 		out.write(buf,size);
 	}
 	out.close();
+	// If -m, output mmap.txt
+	if(writeMmap) {
+		std::ofstream mmap("mmap.txt");
+		if(!mmap.is_open())
+			Error err(ERR_IO,std::string("All"),0,std::string("mmap.txt"));
+		mmap	<< "Label memory mapping:\n"
+				<< "---------------------\n\n";
+		std::map<int,std::string> revConsts;
+		std::map<std::string,int>::iterator it;
+		for(it = consts.begin(); it != consts.end(); ++it)
+			revConsts[it->second] = it->first;
+		std::map<int,std::string>::iterator itt;
+		for(itt = revConsts.begin(); itt != revConsts.end(); ++itt) {
+			if(std::find(labelNames.begin(),labelNames.end(),itt->second) != labelNames.end())
+				mmap << itt->second << "\t: " << itt->first << std::endl;
+		}
+		mmap.close();
+	}
 }
 
 void Assembler::useZeroFill() {

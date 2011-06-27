@@ -25,7 +25,7 @@ Assembler::Assembler() {
 	outputFP = "output.c16";
 	// Say hello
 	std::cout	<< "\ntchip16 -- a Chip16 assembler\n"
-				<< "(C) 2011 tykel\n\n";
+				<< "V 1.1.0 (C) 2011 tykel\n\n";
 }
 
 Assembler::~Assembler() {
@@ -464,7 +464,7 @@ inline void Assembler::op_n_n(std::ofstream& bin, OPCODE op,u8 n1,u8 n2) {
 		if(n2 == 0)
 			out[3] = 2;
 		else if(n2 == 1)
-			out[3] = 1;
+			out[3] = 3;
 		else
 			Error err(ERR_OP_ARGS,files[lineNb],lines[lineNb],std::string("FLIP"));
 	}
@@ -695,6 +695,7 @@ void Assembler::initMaps() {
 	regMap["r15"] = 0xF;
 
 	condMap["z"] = 0x0;
+	condMap["mz"] = 0x0;
 	condMap["nz"] = 0x1;
 	condMap["n"] = 0x2;
 	condMap["nn"] = 0x3;

@@ -27,9 +27,18 @@ int main(int argc, char* argv[]) {
 
 	Assembler* tc16 = new Assembler();
 
+	int nbFiles = 0;
+
+	if(argc > 2) {
+		for(int i=1; i<argc; ++i) {
+			if(argv[i][0] != '-' && argv[i-1][0] != '-')
+				++nbFiles;
+		}
+	}
+
 	// Parse the command line arguments
 	if(argc > 2) {
-		for(int i=2; i<argc; ++i) {
+		for(int i=1+nbFiles; i<argc; ++i) {
 			std::string arg(argv[i]);
 			if(arg.length() > 1 && arg[0] == '-') {
 				if(arg[1] == 'o' || arg[1] == 'O') {
@@ -65,7 +74,8 @@ int main(int argc, char* argv[]) {
 		}
 		else {
 			// Do stuff!
-			tc16->tokenize(argv[1]);
+			for(int i=0; i<nbFiles; ++i)
+				tc16->tokenize(argv[1+i]);
 			std::cout << "Building tokens... OK\n";
 		}
 	}

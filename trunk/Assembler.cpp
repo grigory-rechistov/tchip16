@@ -7,6 +7,7 @@
 */
 
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <sstream>
 #include <algorithm>
@@ -90,6 +91,7 @@ void Assembler::tokenize(const char* fn) {
 					Error err(ERR_TOO_MANY,f,lineNbAlt,std::string("importbin"));
 				toks.erase(toks.begin(),toks.begin()+1);
 				imports.push_back(toks);
+				labelNames.push_back(toks[3]);
 			}
 			else if(toks.size() > 1 && toks[1] == "equ") {
 				if(toks.size() < 3)
@@ -105,8 +107,9 @@ void Assembler::tokenize(const char* fn) {
 				if(toks[0].size() > 1 &&
 				   toks[0][0] == ':' || toks[0][toks[0].size()-1] == ':') {
 					   std::string label(toks[0].substr(0,toks[0].size()-1));
+					   int pad = alignLabels ? 4 - (totalBytes % 4) : 0;
 					   // Add to map
-					   consts[label] = totalBytes;
+					   consts[label] = totalBytes + pad;
 					   // Add to label list
 					   labelNames.push_back(label);
 					   // Remove token
@@ -130,7 +133,7 @@ void Assembler::tokenize(const char* fn) {
 					files.push_back(std::string(fn));
 					if(toks[0] == "db" && toks.size() > 1) {
 						if(toks[1][0] == '"') {
-							for(unsigned i=1; i<toks.size(); i++)
+							for(unsigned i=1; i<toks.size(); ++i)
 								totalBytes += toks[i].size();
 							totalBytes -= 1;
 						}
@@ -147,7 +150,8 @@ void Assembler::tokenize(const char* fn) {
 	file.close();
 	// Remember the imports!
 	for(unsigned i=0; i<imports.size(); ++i) {
-		consts[imports[i][3]] = totalBytes;
+		int pad = alignLabels ? 4 - (totalBytes % 4) : 0;
+		consts[imports[i][3]] = totalBytes + pad;
 		totalBytes += atoi_t(imports[i][2]) - atoi_t(imports[i][1]);
 	}
 }
@@ -360,9 +364,10 @@ void Assembler::outputFile() {
 		std::map<int,std::string>::iterator itt;
 		for(itt = revConsts.begin(); itt != revConsts.end(); ++itt) {
 			if(std::find(labelNames.begin(),labelNames.end(),itt->second) != labelNames.end())
-				mmap << itt->second << "\t: " << itt->first << std::endl;
+				mmap << std::setw(20) << std::left << itt->second
+					 << " : " << itt->first << std::endl;
 		}
-		mmap << "---------------------\n";
+		mmap << "\n---------------------\n";
 		mmap.close();
 		std::cout << "OK\n";
 	}

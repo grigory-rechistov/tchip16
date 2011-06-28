@@ -26,7 +26,7 @@ Assembler::Assembler() {
 	outputFP = "output.c16";
 	// Say hello
 	std::cout	<< "\ntchip16 -- a Chip16 assembler\n"
-				<< "V 1.1.2 (C) 2011 tykel\n\n";
+				<< "V 1.1.3 (C) 2011 tykel\n\n";
 }
 
 Assembler::~Assembler() {

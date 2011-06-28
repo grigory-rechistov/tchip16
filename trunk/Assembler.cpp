@@ -90,7 +90,6 @@ void Assembler::tokenize(const char* fn) {
 					Error err(ERR_TOO_MANY,f,lineNbAlt,std::string("importbin"));
 				toks.erase(toks.begin(),toks.begin()+1);
 				imports.push_back(toks);
-				totalBytes += atoi_t(toks[2]) - atoi_t(toks[1]);
 			}
 			else if(toks.size() > 1 && toks[1] == "equ") {
 				if(toks.size() < 3)
@@ -146,14 +145,11 @@ void Assembler::tokenize(const char* fn) {
 	}
 
 	file.close();
-
-	// Get addresses for imports
-	int addr = totalBytes;
-	for(int i=(int)imports.size()-1; i>=0; --i) {
-		addr -= atoi_t(imports[i][2]);
-		consts[imports[i][3]] = addr;
+	// Remember the imports!
+	for(unsigned i=0; i<imports.size(); ++i) {
+		totalBytes += atoi_t(imports[i][2]) - atoi_t(imports[i][1]);
+		consts[imports[i][3]] = totalBytes;
 	}
-
 }
 
 void Assembler::outputFile() {

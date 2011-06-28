@@ -25,7 +25,7 @@ Assembler::Assembler() {
 	outputFP = "output.c16";
 	// Say hello
 	std::cout	<< "\ntchip16 -- a Chip16 assembler\n"
-				<< "V 1.1.0 (C) 2011 tykel\n\n";
+				<< "V 1.1.1 (C) 2011 tykel\n\n";
 }
 
 Assembler::~Assembler() {
@@ -146,6 +146,14 @@ void Assembler::tokenize(const char* fn) {
 	}
 
 	file.close();
+
+	// Get addresses for imports
+	int addr = totalBytes;
+	for(int i=(int)imports.size()-1; i>=0; --i) {
+		addr -= atoi_t(imports[i][2]);
+		consts[imports[i][3]] = addr;
+	}
+
 }
 
 void Assembler::outputFile() {

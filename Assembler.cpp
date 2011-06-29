@@ -111,7 +111,7 @@ void Assembler::tokenize(const char* fn) {
 						   label = toks[0].substr(1,toks[0].size()-1);
 					   else
 						   label = toks[0].substr(0,toks[0].size()-1);
-					   int pad = alignLabels ? 4 - (totalBytes % 4) : 0;
+					   int pad = alignLabels ? (totalBytes % 4 != 0 ? 4 - (totalBytes % 4) : 0) : 0;
 					   // Add to map
 					   consts[label] = totalBytes + pad;
 					   // Add to label list
@@ -143,6 +143,8 @@ void Assembler::tokenize(const char* fn) {
 						}
 						else
 							totalBytes += toks.size() - 1;
+						int pad = alignLabels ? (totalBytes % 4 != 0 ? 4 - (totalBytes % 4) : 0) : 0;
+						totalBytes += pad;
 					}
 					else
 						totalBytes += 4;
@@ -154,13 +156,14 @@ void Assembler::tokenize(const char* fn) {
 	file.close();
 	// Remember the imports!
 	for(unsigned i=0; i<imports.size(); ++i) {
-		int pad = alignLabels ? 4 - (totalBytes % 4) : 0;
+		int pad = alignLabels ? (totalBytes % 4 != 0 ? 4 - (totalBytes % 4) : 0) : 0;
 		consts[imports[i][3]] = totalBytes + pad;
-		totalBytes += atoi_t(imports[i][2]) - atoi_t(imports[i][1]);
+		totalBytes += atoi_t(imports[i][2]);
 	}
 }
 
 void Assembler::outputFile() {
+	std::cout << "Output code... ";
 	std::ofstream out(outputFP,std::ios::out|std::ios::binary);
 	if(!out.is_open())
 		Error err(ERR_IO,outputFP,0,std::string("All"));
@@ -329,6 +332,7 @@ void Assembler::outputFile() {
 			break;
 		}
 	}
+	std::cout << "OK\n";
 	// Output imported binaries
 	std::cout << "Output imports... ";
 	for(unsigned i=0; i<imports.size(); ++i) {
@@ -355,7 +359,7 @@ void Assembler::outputFile() {
 	out.close();
 	// If -m, output mmap.txt
 	if(writeMmap) {
-		std::cout << "Outputing mmap.txt... ";
+		std::cout << "Output mmap.txt... ";
 		std::ofstream mmap("mmap.txt");
 		if(!mmap.is_open())
 			Error err(ERR_IO,std::string("All"),0,std::string("mmap.txt"));
@@ -369,7 +373,8 @@ void Assembler::outputFile() {
 		for(itt = revConsts.begin(); itt != revConsts.end(); ++itt) {
 			if(std::find(labelNames.begin(),labelNames.end(),itt->second) != labelNames.end())
 				mmap << std::setw(20) << std::left << itt->second 
-					 << " : " << itt->first << std::hex << " (0x" << itt->first << ")\n";
+					 << " : " << std::dec << itt->first << std::hex 
+					 << " (0x" << itt->first << ")\n";
 		}
 		mmap << "\n---------------------\n";
 		mmap.close();
@@ -415,9 +420,10 @@ void Assembler::debugOut() {
 		for(unsigned j=0; j<imports[i].size(); j++) {
 			std::cout << "[ " << imports[i][j] << " ] ";
 		}
+		std::cout << std::endl;
 	}
 	// Print out consts mappings
-	std::cout << "\n\nConsts mapping:\n";
+	std::cout << "\nConsts mapping:\n";
 	std::map<std::string,int>::iterator it;
 	for(it = consts.begin(); it != consts.end(); it++) {
 		std::cout << "    " << std::setw(15) << std::left << it->first;
@@ -647,7 +653,7 @@ void Assembler::initMaps() {
 	opMap["ldm_r"] = LDM_R;
 	opMap["mov"] = MOV;
 	opMap["stm_i"] = STM_I;
-	opMap["stm"] = STM_R;
+	opMap["stm_r"] = STM_R;
 	opMap["addi"] = ADDI;
 	opMap["add_r2"] = ADD_R2;
 	opMap["add_r3"] = ADD_R3;
@@ -783,7 +789,7 @@ void Assembler::fixOps() {
 			case ldi:
 				if(tokens[lineNb].size() != 3)
 					Error err(ERR_OP_ARGS,files[lineNb],lines[lineNb],tokens[lineNb][0]);
-				if(regMap.find(tokens[lineNb][1]) != regMap.end())
+				if(tokens[lineNb][1][0] == 'r')
 					tokens[lineNb][0] = "ldi_r";
 				else
 					tokens[lineNb][0] = "ldi_sp";
@@ -791,7 +797,7 @@ void Assembler::fixOps() {
 			case ldm:
 				if(tokens[lineNb].size() != 3)
 					Error err(ERR_OP_ARGS,files[lineNb],lines[lineNb],tokens[lineNb][0]);
-				if(regMap.find(tokens[lineNb][1]) != regMap.end())
+				if(regMap.find(tokens[lineNb][2]) != regMap.end())
 					tokens[lineNb][0] = "ldm_r";
 				else
 					tokens[lineNb][0] = "ldm_i";
@@ -799,7 +805,7 @@ void Assembler::fixOps() {
 			case stm:
 				if(tokens[lineNb].size() != 3)
 					Error err(ERR_OP_ARGS,files[lineNb],lines[lineNb],tokens[lineNb][0]);
-				if(regMap.find(tokens[lineNb][1]) != regMap.end())
+				if(regMap.find(tokens[lineNb][2]) != regMap.end())
 					tokens[lineNb][0] = "stm_r";
 				else
 					tokens[lineNb][0] = "stm_i";

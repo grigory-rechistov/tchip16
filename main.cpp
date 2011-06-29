@@ -81,12 +81,11 @@ int main(int argc, char* argv[]) {
 	}
 	else
 		Error err(ERR_NO_INPUT);
-
+	
+	tc16->fixOps();
 #ifdef _DEBUG
 	tc16->debugOut();
 #endif
-	
-	tc16->fixOps();
 	tc16->outputFile();
 
 	std::cout << "\nBuild complete.";

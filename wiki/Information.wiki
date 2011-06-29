@@ -1,0 +1,41 @@
+#summary tchip16 quick guide to get you started
+#labels Phase-Deploy,Featured
+
+= Usage =
+
+(See the README in your download for more extensive information)
+
+== tchip16 ==
+
+Windows: `tchip16 <source> [-o dest] [-m] [-a] [-z]`
+
+Linux: `./tchip16 <source> [-o dest] [-m] [-a] [-z]` 
+
+(< >:required, [ ]:optional)
+
+  * compiles file(s) _source_
+  * output file is _dest_ if -o is specified, _output.c16_ otherwise
+  * if -m is specified, outputs _mmap.txt_ which lists the addresses of all the labels in the code
+  * if -a is specified, aligns labels and pads db's to 4-byte boundaries
+  * if -z is specified, fill the output file with 0's after code until 64K
+
+== img_conv ==
+
+Windows: `img_conv <source> <dest> [col_key]`
+
+  * reads _source_ and outputs corresponding _dest_
+  * if _col`_`key_ is specified, all pixels of color _col`_`key_ will be transparent
+
+*Remember*: _source_ must be a 24-bit BMP file.
+
+= FAQ =
+
+== What is tchip16? What should I use it for? ==
+
+_tchip16_ is an assembler for the Chip16 VM, which is detailed in the [http://forums.ngemu.com/web-development-programming/138170-codename-chip16-prev-chip9.html thread] on Emuforums.
+You should use it to compile your code into a Chip16 binary file.
+
+== Is tchip16 available for my system? ==
+
+_tchip16_ is cross-platform, in the sense that it does not include platform-specific code, and should build without problems on linux, Mac OS X, and Windows.
+That said, it was developed on Windows, so _only Windows (x86, 32-bit) binaries are available_ -- for other systems, you will have to compile from source.

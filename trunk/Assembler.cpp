@@ -26,7 +26,7 @@ Assembler::Assembler() {
 	outputFP = "output.c16";
 	// Say hello
 	std::cout	<< "\ntchip16 -- a Chip16 assembler\n"
-				<< "V 1.1.3 (C) 2011 tykel\n\n";
+				<< "V 1.1.4 (C) 2011 tykel\n\n";
 }
 
 Assembler::~Assembler() {
@@ -106,7 +106,11 @@ void Assembler::tokenize(const char* fn) {
 			else {
 				if(toks[0].size() > 1 &&
 				   toks[0][0] == ':' || toks[0][toks[0].size()-1] == ':') {
-					   std::string label(toks[0].substr(0,toks[0].size()-1));
+					   std::string label;
+					   if(toks[0][0] == ':')
+						   label = toks[0].substr(1,toks[0].size()-1);
+					   else
+						   label = toks[0].substr(0,toks[0].size()-1);
 					   int pad = alignLabels ? 4 - (totalBytes % 4) : 0;
 					   // Add to map
 					   consts[label] = totalBytes + pad;
@@ -121,7 +125,7 @@ void Assembler::tokenize(const char* fn) {
 					std::transform(toks[0].begin(),toks[0].end(),toks[0].begin(),::tolower);
 					// If the mnemonic uses a conditional type, fix it
 					if(toks[0].size() > 1 &&
-						(toks[0][0] == 'j' && toks[0][1] != 'm') ||
+						(toks[0][0] == 'j' && (toks[0] == "jmz" || toks[0][1] != 'm')) ||
 						(toks[0][0] == 'c' && toks[0] != "call" 
 							&& toks[0] != "cls" && toks[0] != "cmpi" && toks[0] != "cmp")) {
 							toks.insert(toks.begin()+1,toks[0].substr(1));
@@ -275,7 +279,7 @@ void Assembler::outputFile() {
 				Error err(ERR_OP_ARGS,files[lineNb],lines[lineNb],tokens[lineNb][0]);
 			// Overflow check on imm
 			if(consts.find(tokens[lineNb][3]) != consts.end()) {
-				if(consts[tokens[lineNb][3]] > 0xFF)
+				if(consts[tokens[lineNb][3]] > 0xFFFF)
 					Error err(ERR_NUM_OVERFLOW,files[lineNb],lines[lineNb],tokens[lineNb][3]);
 				imm = consts[tokens[lineNb][3]];
 			}
@@ -364,8 +368,8 @@ void Assembler::outputFile() {
 		std::map<int,std::string>::iterator itt;
 		for(itt = revConsts.begin(); itt != revConsts.end(); ++itt) {
 			if(std::find(labelNames.begin(),labelNames.end(),itt->second) != labelNames.end())
-				mmap << std::setw(20) << std::left << itt->second
-					 << " : " << itt->first << std::endl;
+				mmap << std::setw(20) << std::left << itt->second 
+					 << " : " << itt->first << std::hex << " (0x" << itt->first << ")\n";
 		}
 		mmap << "\n---------------------\n";
 		mmap.close();
@@ -416,7 +420,11 @@ void Assembler::debugOut() {
 	std::cout << "\n\nConsts mapping:\n";
 	std::map<std::string,int>::iterator it;
 	for(it = consts.begin(); it != consts.end(); it++) {
-		std::cout << "    " << it->first << " : " << it->second << "\n";
+		std::cout << "    " << std::setw(15) << std::left << it->first;
+		std::cout << std::internal << " : " << it->second;
+		if(std::find(labelNames.begin(),labelNames.end(),it->first) != labelNames.end())
+			std::cout << std::right << " (label)";
+		std::cout << std::endl;
 	}
 	std::cout << "\n--\n\n";
 }
@@ -716,6 +724,7 @@ void Assembler::initMaps() {
 	condMap["nc"] = 0x8;
 	condMap["b"] = 0x9;
 	condMap["c"] = 0x9;
+	condMap["mc"] = 0x9;
 	condMap["be"] = 0xA;
 	condMap["g"] = 0xB;
 	condMap["ge"] = 0xC;
@@ -750,7 +759,7 @@ void Assembler::fixOps() {
 			case drw:
 				if(tokens[lineNb].size() != 4)
 					Error err(ERR_OP_ARGS,files[lineNb],lines[lineNb],tokens[lineNb][0]);
-				if(tokens[lineNb][3][0] == 'r')
+				if(regMap.find(tokens[lineNb][3]) != regMap.end())
 					tokens[lineNb][0] = "drw_r";
 				else
 					tokens[lineNb][0] = "drw_i";
@@ -758,7 +767,7 @@ void Assembler::fixOps() {
 			case jmp:
 				if(tokens[lineNb].size() != 2)
 					Error err(ERR_OP_ARGS,files[lineNb],lines[lineNb],tokens[lineNb][0]);
-				if(tokens[lineNb][1][0] == 'r')
+				if(regMap.find(tokens[lineNb][1]) != regMap.end())
 					tokens[lineNb][0] = "jmp_r";
 				else
 					tokens[lineNb][0] = "jmp_i";
@@ -766,7 +775,7 @@ void Assembler::fixOps() {
 			case call:
 				if(tokens[lineNb].size() != 2)
 					Error err(ERR_OP_ARGS,files[lineNb],lines[lineNb],tokens[lineNb][0]);
-				if(tokens[lineNb][1][0] == 'r')
+				if(regMap.find(tokens[lineNb][1]) != regMap.end())
 					tokens[lineNb][0] = "call_r";
 				else
 					tokens[lineNb][0] = "call_i";
@@ -774,7 +783,7 @@ void Assembler::fixOps() {
 			case ldi:
 				if(tokens[lineNb].size() != 3)
 					Error err(ERR_OP_ARGS,files[lineNb],lines[lineNb],tokens[lineNb][0]);
-				if(tokens[lineNb][1][0] == 'r')
+				if(regMap.find(tokens[lineNb][1]) != regMap.end())
 					tokens[lineNb][0] = "ldi_r";
 				else
 					tokens[lineNb][0] = "ldi_sp";
@@ -782,7 +791,7 @@ void Assembler::fixOps() {
 			case ldm:
 				if(tokens[lineNb].size() != 3)
 					Error err(ERR_OP_ARGS,files[lineNb],lines[lineNb],tokens[lineNb][0]);
-				if(tokens[lineNb][1][0] == 'r')
+				if(regMap.find(tokens[lineNb][1]) != regMap.end())
 					tokens[lineNb][0] = "ldm_r";
 				else
 					tokens[lineNb][0] = "ldm_i";
@@ -790,7 +799,7 @@ void Assembler::fixOps() {
 			case stm:
 				if(tokens[lineNb].size() != 3)
 					Error err(ERR_OP_ARGS,files[lineNb],lines[lineNb],tokens[lineNb][0]);
-				if(tokens[lineNb][1][0] == 'r')
+				if(regMap.find(tokens[lineNb][1]) != regMap.end())
 					tokens[lineNb][0] = "stm_r";
 				else
 					tokens[lineNb][0] = "stm_i";
@@ -856,7 +865,7 @@ void Assembler::fixOps() {
 			case shl:
 				if(tokens[lineNb].size() != 3)
 					Error err(ERR_OP_ARGS,files[lineNb],lines[lineNb],tokens[lineNb][0]);
-				if(tokens[lineNb][2][0] == 'r')
+				if(regMap.find(tokens[lineNb][2]) != regMap.end())
 					tokens[lineNb][0] = "shl_r";
 				else
 					tokens[lineNb][0] = "shl_n";
@@ -866,7 +875,7 @@ void Assembler::fixOps() {
 			case shr:
 				if(tokens[lineNb].size() != 3)
 					Error err(ERR_OP_ARGS,files[lineNb],lines[lineNb],tokens[lineNb][0]);
-				if(tokens[lineNb][2][0] == 'r')
+				if(regMap.find(tokens[lineNb][2]) != regMap.end())
 					tokens[lineNb][0] = "shr_r";
 				else
 					tokens[lineNb][0] = "shr_n";

@@ -26,7 +26,7 @@ Assembler::Assembler() {
 	outputFP = "output.c16";
 	// Say hello
 	std::cout	<< "\ntchip16 -- a Chip16 assembler\n"
-				<< "V 1.1.6 (C) 2011 tykel\n\n";
+				<< "V 1.1.7 (C) 2011 tykel\n\n";
 }
 
 Assembler::~Assembler() {
@@ -686,7 +686,7 @@ void Assembler::initMaps() {
 	opMap["shl_r"] = SHL_R;
 	opMap["sal_r"] = SHL_R;
 	opMap["shr_r"] = SHR_R;
-	opMap["sal_r"] = SAR_R;
+	opMap["sar_r"] = SAR_R;
 	opMap["push"] = PUSH;
 	opMap["pop"] = POP;
 	opMap["pushall"] = PUSHALL;

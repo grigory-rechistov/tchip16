@@ -26,7 +26,7 @@ Assembler::Assembler() {
 	outputFP = "output.c16";
 	// Say hello
 	std::cout	<< "\ntchip16 -- a Chip16 assembler\n"
-				<< "V 1.1.8 (C) 2011 tykel\n\n";
+				<< "V 1.1.9 (C) 2011 tykel\n\n";
 }
 
 Assembler::~Assembler() {
@@ -697,28 +697,28 @@ void Assembler::initMaps() {
 	opMap["db_n"] = DB;
 	opMap["db_str"] = DB_STR;
 
-	regMap["r0"] = 0x0;
-	regMap["r1"] = 0x1;
-	regMap["r2"] = 0x2;
-	regMap["r3"] = 0x3;
-	regMap["r4"] = 0x4;
-	regMap["r5"] = 0x5;
-	regMap["r6"] = 0x6;
-	regMap["r7"] = 0x7;
-	regMap["r8"] = 0x8;
-	regMap["r9"] = 0x9;
-	regMap["ra"] = 0xA;
-	regMap["rb"] = 0xB;
-	regMap["rc"] = 0xC;
-	regMap["rd"] = 0xD;
-	regMap["re"] = 0xE;
-	regMap["rf"] = 0xF;
-	regMap["r10"] = 0xA;
-	regMap["r11"] = 0xB;
-	regMap["r12"] = 0xC;
-	regMap["r13"] = 0xD;
-	regMap["r14"] = 0xE;
-	regMap["r15"] = 0xF;
+	regMap["r0"] = 0x0; regMap["R0"] = 0x0;
+	regMap["r1"] = 0x1; regMap["R1"] = 0x0;
+	regMap["r2"] = 0x2; regMap["R2"] = 0x0;
+	regMap["r3"] = 0x3; regMap["R3"] = 0x0;
+	regMap["r4"] = 0x4; regMap["R4"] = 0x0;
+	regMap["r5"] = 0x5; regMap["R5"] = 0x0;
+	regMap["r6"] = 0x6; regMap["R6"] = 0x0;
+	regMap["r7"] = 0x7; regMap["R7"] = 0x0;
+	regMap["r8"] = 0x8; regMap["R8"] = 0x0;
+	regMap["r9"] = 0x9; regMap["R9"] = 0x0;
+	regMap["ra"] = 0xA; regMap["RA"] = 0x0;
+	regMap["rb"] = 0xB; regMap["RB"] = 0x0;
+	regMap["rc"] = 0xC; regMap["RC"] = 0x0;
+	regMap["rd"] = 0xD; regMap["RD"] = 0x0;
+	regMap["re"] = 0xE; regMap["RE"] = 0x0;
+	regMap["rf"] = 0xF; regMap["RF"] = 0x0;
+	regMap["r10"] = 0xA; regMap["R10"] = 0x0;
+	regMap["r11"] = 0xB; regMap["R11"] = 0x0;
+	regMap["r12"] = 0xC; regMap["R12"] = 0x0;
+	regMap["r13"] = 0xD; regMap["R13"] = 0x0;
+	regMap["r14"] = 0xE; regMap["R14"] = 0x0;
+	regMap["r15"] = 0xF; regMap["R15"] = 0x0;
 
 	condMap["z"] = 0x0;
 	condMap["mz"] = 0x0;
@@ -795,9 +795,9 @@ void Assembler::fixOps() {
 			case ldi:
 				if(tokens[lineNb].size() != 3)
 					Error err(ERR_OP_ARGS,files[lineNb],lines[lineNb],tokens[lineNb][0]);
-				if(tokens[lineNb][1][0] == 'r')
+				if(tokens[lineNb][1][0] == 'r' || tokens[lineNb][1][0] == 'R')
 					tokens[lineNb][0] = "ldi_r";
-				else if(tokens[lineNb][1] == "sp")
+				else if(tokens[lineNb][1] == "sp" || tokens[lineNb][1] == "SP")
 					tokens[lineNb][0] = "ldi_sp";
 				else
 					Error err(ERR_OP_ARGS,files[lineNb],lines[lineNb],tokens[lineNb][1]);

@@ -5,36 +5,8 @@
 CHANGELOG:
 ------------------------------------------------------------------------------------
 
-tchip16 has been rewritten from scratch for this version.
-Hopefully there will not be too many bugs -- but there are many improvements, both
-to the user and under the hood, including:
-
-- new "include" directive, source files may be included to modularize programs
-- new "db" directive, can be used to store values or strings
-- new "equ" directive, can be used for named constants
-- more flexible syntax -- for instance, labels may be placed on the same line as an
-  instruction
-- new error mechanism, with error codes and descriptions of the problem (including
-  line number, file and/or value when appropriate)
-- command line arguments, modifying the way the file is compiled and/or displaying
-  help text
-
-------------------------------------------------------------------------------------
-TECHNICAL DISCLAIMER:
-------------------------------------------------------------------------------------
-
-	tchip16 is my effort to provide a functional and usable assembler
-	for the Chip16 system.
-	I do NOT claim tchip16 to be optimal(1) or fully-featured(2):
-	(1) The assembler was programmed for simplicity, and the small size of
-		Chip16 programs combined with the average computer's power
-		means this does not affect the user's experience in any noticeable
-		fashion.
-	(2) This assembler will probably never have the power or flexibility
-		of NASM or equivalents; that is not the purpose or the scope of 
-		this project, though. This assembler is designed first and for all
-		for hobbyist development on the system, not for production 
-		environments.
+See commit notes on project homepage
+(http://code.google.com/p/tchip16)
 		
 ------------------------------------------------------------------------------------
 USAGE: 

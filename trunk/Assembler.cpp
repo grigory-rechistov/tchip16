@@ -26,7 +26,7 @@ Assembler::Assembler() {
 	outputFP = "output.c16";
 	// Say hello
 	std::cout	<< "\ntchip16 -- a Chip16 assembler\n"
-				<< "V 1.1.5 (C) 2011 tykel\n\n";
+				<< "V 1.1.6 (C) 2011 tykel\n\n";
 }
 
 Assembler::~Assembler() {
@@ -867,7 +867,6 @@ void Assembler::fixOps() {
 					Error err(ERR_OP_ARGS,files[lineNb],lines[lineNb],tokens[lineNb][0]);
 				break;
 			case sal:
-				tokens[lineNb][0] = "shl";
 			case shl:
 				if(tokens[lineNb].size() != 3)
 					Error err(ERR_OP_ARGS,files[lineNb],lines[lineNb],tokens[lineNb][0]);
@@ -877,7 +876,13 @@ void Assembler::fixOps() {
 					tokens[lineNb][0] = "shl_n";
 				break;
 			case sar:
-				tokens[lineNb][0] = "shr";
+				if(tokens[lineNb].size() != 3)
+					Error err(ERR_OP_ARGS,files[lineNb],lines[lineNb],tokens[lineNb][0]);
+				if(regMap.find(tokens[lineNb][2]) != regMap.end())
+					tokens[lineNb][0] = "sar_r";
+				else
+					tokens[lineNb][0] = "sar_n";
+				break;
 			case shr:
 				if(tokens[lineNb].size() != 3)
 					Error err(ERR_OP_ARGS,files[lineNb],lines[lineNb],tokens[lineNb][0]);

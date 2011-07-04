@@ -26,7 +26,7 @@ Assembler::Assembler() {
 	outputFP = "output.c16";
 	// Say hello
 	std::cout	<< "\ntchip16 -- a Chip16 assembler\n"
-				<< "V 1.1.7 (C) 2011 tykel\n\n";
+				<< "V 1.1.8 (C) 2011 tykel\n\n";
 }
 
 Assembler::~Assembler() {
@@ -139,7 +139,10 @@ void Assembler::tokenize(const char* fn) {
 						if(toks[1][0] == '"') {
 							for(unsigned i=1; i<toks.size(); ++i)
 								totalBytes += toks[i].size();
-							totalBytes -= 1;
+							// Allow for spaces
+							totalBytes += toks.size() - 2;
+							// Remove both quote marks
+							totalBytes -= 2;
 						}
 						else
 							totalBytes += toks.size() - 1;
@@ -760,6 +763,9 @@ void Assembler::initMaps() {
 
 void Assembler::fixOps() {
 	for(lineNb=0; lineNb<tokens.size(); ++lineNb) {
+		// Ensure all opcodes are lowercase to avoid side-effects
+		std::transform(tokens[lineNb][0].begin(),tokens[lineNb][0].begin(),
+			tokens[lineNb][0].begin(),::tolower);
 		if(opMap.find(tokens[lineNb][0]) == opMap.end()) {
 			switch(mnemMap[tokens[lineNb][0]]) {
 			case drw:
@@ -791,8 +797,10 @@ void Assembler::fixOps() {
 					Error err(ERR_OP_ARGS,files[lineNb],lines[lineNb],tokens[lineNb][0]);
 				if(tokens[lineNb][1][0] == 'r')
 					tokens[lineNb][0] = "ldi_r";
-				else
+				else if(tokens[lineNb][1] == "sp")
 					tokens[lineNb][0] = "ldi_sp";
+				else
+					Error err(ERR_OP_ARGS,files[lineNb],lines[lineNb],tokens[lineNb][1]);
 				break;
 			case ldm:
 				if(tokens[lineNb].size() != 3)

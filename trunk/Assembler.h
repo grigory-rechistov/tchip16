@@ -50,7 +50,7 @@ public:
 
 private:
 	// Adapted from prev. ver., useful str->int conversion
-	u16 atoi_t(std::string&);
+	u16 atoi_t(std::string);
 	// Factored out the initialization of opMap and regMap
 	void initMaps();
 

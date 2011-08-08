@@ -29,10 +29,13 @@ int main(int argc, char* argv[]) {
 
 	int nbFiles = 0;
 
-	if(argc > 2) {
+	// Source of a silly bug -- was only checking if argc > 2 (doesn't work with lone arg)
+	if(argc > 1) {
 		for(int i=1; i<argc; ++i) {
 			if(argv[i][0] != '-' && argv[i-1][0] != '-')
 				++nbFiles;
+			else
+				break;
 		}
 	}
 

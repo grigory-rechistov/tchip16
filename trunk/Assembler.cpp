@@ -26,7 +26,7 @@ Assembler::Assembler() {
 	outputFP = "output.c16";
 	// Say hello
 	std::cout	<< "\ntchip16 -- a Chip16 assembler\n"
-				<< "V 1.1.9 (C) 2011 tykel\n\n";
+				<< "V 1.1.10 (C) 2011 tykel\n\n";
 }
 
 Assembler::~Assembler() {
@@ -176,7 +176,8 @@ void Assembler::outputFile() {
 		u16 imm;
 		u8 n, n1, n2;
 		switch(opcode) {
-		case NOP: case CLS: case VBLNK: case SND0: case PUSHALL: case POPALL: case RET:
+		case NOP: case CLS: case VBLNK: case SND0: case PUSHALL: case POPALL: 
+		case PUSHF: case POPF: case RET:
 			if(tokens[lineNb].size() > 1)
 				Error err(ERR_OP_ARGS,files[lineNb],lines[lineNb],tokens[lineNb][0]);
 			op_void(out,opcode);
@@ -576,7 +577,7 @@ void Assembler::db(std::ofstream& bin, std::string& str) {
 	}
 }
 
-u16 Assembler::atoi_t(std::string& str)
+u16 Assembler::atoi_t(std::string str)
 {
 	if(str.size() == 0)
 		return 0;
@@ -694,9 +695,11 @@ void Assembler::initMaps() {
 	opMap["pop"] = POP;
 	opMap["pushall"] = PUSHALL;
 	opMap["popall"] = POPALL;
+	opMap["pushf"] = PUSHF;
+	opMap["popf"] = POPF;
 	opMap["db_n"] = DB;
 	opMap["db_str"] = DB_STR;
-
+	// Register mapping
 	regMap["r0"] = 0x0; regMap["R0"] = 0x0;
 	regMap["r1"] = 0x1; regMap["R1"] = 0x0;
 	regMap["r2"] = 0x2; regMap["R2"] = 0x0;
@@ -719,7 +722,7 @@ void Assembler::initMaps() {
 	regMap["r13"] = 0xD; regMap["R13"] = 0x0;
 	regMap["r14"] = 0xE; regMap["R14"] = 0x0;
 	regMap["r15"] = 0xF; regMap["R15"] = 0x0;
-
+	// Condition modes in branching operations
 	condMap["z"] = 0x0;
 	condMap["mz"] = 0x0;
 	condMap["nz"] = 0x1;
@@ -739,7 +742,7 @@ void Assembler::initMaps() {
 	condMap["ge"] = 0xC;
 	condMap["l"] = 0xD;
 	condMap["le"] = 0xE;
-	
+	// Mnemonics that need fixing (multiple addressing modes)
 	mnemMap["drw"] = drw;
 	mnemMap["jmp"] = jmp;
 	mnemMap["call"] = call;

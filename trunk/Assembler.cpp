@@ -26,7 +26,7 @@ Assembler::Assembler() {
 	outputFP = "output.c16";
 	// Say hello
 	std::cout	<< "\ntchip16 -- a Chip16 assembler\n"
-				<< "V 1.1.10 (C) 2011 tykel\n\n";
+				<< "V 1.2.0 (C) 2011 tykel\n\n";
 }
 
 Assembler::~Assembler() {
@@ -58,6 +58,13 @@ void Assembler::tokenize(const char* fn) {
 	std::string ln;
 	int lineNbAlt = 0;
 	while(std::getline(file,ln)) {
+		// Get a string with bad chars in case of db string
+		std::string badString;
+		int badStart = 0, badEnd = ln.length()-1;
+		for( ; ln[badStart] != '"'; ++badStart){}
+		for( ; ln[badEnd] != '"'; --badEnd){}
+		badString = ln.substr(badStart, badEnd - badStart + 1);
+
 		lineNbAlt++;
 		// Strip ',' from the string
 		std::replace(ln.begin(),ln.end(),',',' ');
@@ -137,12 +144,18 @@ void Assembler::tokenize(const char* fn) {
 					files.push_back(std::string(fn));
 					if(toks[0] == "db" && toks.size() > 1) {
 						if(toks[1][0] == '"') {
-							for(unsigned i=1; i<toks.size(); ++i)
+							// Drop messed up tokens and inject correct string
+							tokens[tokens.size()-1].resize(1);
+							tokens[tokens.size()-1].push_back(badString);
+							totalBytes += badString.size();
+							// Old, hacky way
+							/*for(unsigned i=1; i<toks.size(); ++i)
 								totalBytes += toks[i].size();
 							// Allow for spaces
 							totalBytes += toks.size() - 2;
 							// Remove both quote marks
 							totalBytes -= 2;
+							*/
 						}
 						else
 							totalBytes += toks.size() - 1;
@@ -325,10 +338,7 @@ void Assembler::outputFile() {
 		case DB_STR: {
 			if(tokens[lineNb].size() == 1)
 				Error err(ERR_OP_ARGS,files[lineNb],lines[lineNb],tokens[lineNb][0]);
-			std::string str;
-			for(unsigned j=1; j<tokens[lineNb].size(); ++j)
-				str.append(tokens[lineNb][j]+" ");
-			db(out,str.substr(0,str.size()-1));
+			db(out,tokens[lineNb][1]);
 			break;
 					 }
 		default:
@@ -565,7 +575,6 @@ void Assembler::db(std::ofstream& bin, std::vector<u8>& bytes) {
 }
 
 void Assembler::db(std::ofstream& bin, std::string& str) {
-	str = str.substr(1,str.size()-2);
 	for(unsigned i=0; i<str.size(); ++i) {
 		char out = str[i];
 		bin.write(&out,1);

@@ -26,7 +26,7 @@ Assembler::Assembler() {
 	outputFP = "output.c16";
 	// Say hello
 	std::cout	<< "\ntchip16 -- a Chip16 assembler\n"
-				<< "V 1.2.0 (C) 2011 tykel\n\n";
+				<< "V 1.2.1 (C) 2011 tykel\n\n";
 }
 
 Assembler::~Assembler() {
@@ -61,8 +61,8 @@ void Assembler::tokenize(const char* fn) {
 		// Get a string with bad chars in case of db string
 		std::string badString;
 		int badStart = 0, badEnd = ln.length()-1;
-		for( ; ln[badStart] != '"'; ++badStart){}
-		for( ; ln[badEnd] != '"'; --badEnd){}
+		for( ; badStart<ln.length() && ln[badStart] != '"'; ++badStart){}
+		for( ; badEnd>=0 && ln[badEnd] != '"'; --badEnd){}
 		badString = ln.substr(badStart, badEnd - badStart + 1);
 
 		lineNbAlt++;

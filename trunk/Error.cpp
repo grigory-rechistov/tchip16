@@ -13,7 +13,7 @@ Error::Error(ERROR code) {
 	print(code);
 }
 
-Error::Error(ERROR code, std::string& fn, int lineNb, std::string& str) {
+Error::Error(ERROR code, const std::string& fn, int lineNb, const std::string& str) {
 	std::cout << "File: " << fn.c_str() << "\nLine: " << lineNb << "\n"
 		<< str.c_str() << " : ";
 	print(code);

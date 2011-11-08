@@ -91,7 +91,7 @@ int main(int argc, char* argv[]) {
 #endif
 	tc16->outputFile();
 
-	std::cout << "\nBuild complete.";
+	std::cout << "\nBuild complete.\n";
 
 #ifdef _DEBUG
 	WAIT;

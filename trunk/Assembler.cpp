@@ -11,6 +11,7 @@
 #include <fstream>
 #include <sstream>
 #include <algorithm>
+#include <cmath>
 
 #include "Assembler.h"
 
@@ -180,7 +181,7 @@ void Assembler::tokenize(const char* fn) {
 
 void Assembler::outputFile() {
 	std::cout << "Output code... ";
-	std::ofstream out(outputFP,std::ios::out|std::ios::binary);
+	std::ofstream out(outputFP.c_str(),std::ios::out|std::ios::binary);
 	if(!out.is_open())
 		Error err(ERR_IO,outputFP,0,std::string("All"));
 	// Output code
@@ -352,7 +353,7 @@ void Assembler::outputFile() {
 	for(unsigned i=0; i<imports.size(); ++i) {
 		int size = atoi_t(imports[i][2]);
 		char* buf = new char[size]();
-		std::ifstream imp(imports[i][0],std::ios::in|std::ios::binary);
+		std::ifstream imp(imports[i][0].c_str(),std::ios::in|std::ios::binary);
 		if(!imp.is_open())
 			Error err(ERR_IO,std::string(""),0,imports[i][0]);
 		imp.seekg(atoi_t(imports[i][1]));
@@ -760,9 +761,9 @@ void Assembler::initMaps() {
 	mnemMap["stm"] = stm;
 	mnemMap["add"] = add;
 	mnemMap["sub"] = sub;
-	mnemMap["and"] = and;
-	mnemMap["or"] = or;
-	mnemMap["xor"] = xor;
+	mnemMap["and"] = _and;
+	mnemMap["or"] = _or;
+	mnemMap["xor"] = _xor;
 	mnemMap["mul"] = mul;
 	mnemMap["div"] = _div;
 	mnemMap["shl"] = shl;
@@ -846,7 +847,7 @@ void Assembler::fixOps() {
 				else
 					Error err(ERR_OP_ARGS,files[lineNb],lines[lineNb],tokens[lineNb][0]);
 				break;
-			case and:
+			case _and:
 				if(tokens[lineNb].size() == 3)
 					tokens[lineNb][0] = "and_r2";
 				else if(tokens[lineNb].size() == 4)
@@ -854,7 +855,7 @@ void Assembler::fixOps() {
 				else
 					Error err(ERR_OP_ARGS,files[lineNb],lines[lineNb],tokens[lineNb][0]);
 				break;
-			case or:
+			case _or:
 				if(tokens[lineNb].size() == 3)
 					tokens[lineNb][0] = "or_r2";
 				else if(tokens[lineNb].size() == 4)
@@ -862,7 +863,7 @@ void Assembler::fixOps() {
 				else
 					Error err(ERR_OP_ARGS,files[lineNb],lines[lineNb],tokens[lineNb][0]);
 				break;
-			case xor:
+			case _xor:
 				if(tokens[lineNb].size() == 3)
 					tokens[lineNb][0] = "xor_r2";
 				else if(tokens[lineNb].size() == 4)

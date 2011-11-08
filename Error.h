@@ -9,6 +9,8 @@
 #ifndef _ERROR_H
 #define _ERROR_H
 
+#include <string>
+
 #define WAIT char c; std::cin.get(&c,1)
 
 enum ERROR {
@@ -25,7 +27,7 @@ public:
 	// only error code
 	Error(ERROR);
 	// error code, filename, line number, object
-	Error(ERROR,std::string&,int,std::string&);
+	Error(ERROR,const std::string&,int,const std::string&);
 	~Error(void);
 private:
 	void print(ERROR code);

@@ -1,12 +1,13 @@
 CC = g++
-CFLAGS = -Wall -g
+CFLAGS = -O -g
 LDFLAGS = -lm
+OBJECTS = main.o Assembler.o Error.o
 
-Assembler.o: Assembler.cpp Assembler.h
-	${CC} ${CFLAGS} -c Assembler.cpp
+tchip16: main.o Assembler.o Error.o
+	${CC} ${CFLAGS} ${OBJECTS} ${LDFLAGS} -s -o tchip16
 
-main.o : main.cpp Assembler.h Error.h
-	${CC} ${CFLAGS} -c main.cpp
+%.o: %.cpp
+	${CC} ${CFLAGS} -c $<
 
-tchip16: main.o Assembler.o
-	${CC} ${CFLAGS} Assembler.o main.o ${LDFLAGS} -o tchip16
+clean:
+	-@rm -rf *.o tchip16 2> /dev/null || true

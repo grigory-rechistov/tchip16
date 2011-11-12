@@ -27,7 +27,7 @@ Assembler::Assembler() {
 	outputFP = "output.c16";
 	// Say hello
 	std::cout	<< "\ntchip16 -- a Chip16 assembler\n"
-				<< "V 1.2.2 (C) 2011 tykel\n\n";
+				<< "V 1.2.3 (C) 2011 tykel\n\n";
 }
 
 Assembler::~Assembler() {
@@ -62,7 +62,7 @@ void Assembler::tokenize(const char* fn) {
 		// Get a string with bad chars in case of db string
 		std::string badString;
 		int badStart = 0, badEnd = ln.length()-1;
-		for( ; badStart<ln.length() && ln[badStart] != '"'; ++badStart){}
+		for( ; badStart<(int)ln.length() && ln[badStart] != '"'; ++badStart){}
 		for( ; badEnd>=0 && ln[badEnd] != '"'; --badEnd){}
 		badString = ln.substr(badStart, badEnd - badStart + 1);
 
@@ -339,6 +339,9 @@ void Assembler::outputFile() {
 		case DB_STR: {
 			if(tokens[lineNb].size() == 1)
 				Error err(ERR_OP_ARGS,files[lineNb],lines[lineNb],tokens[lineNb][0]);
+			tokens[lineNb][1] = tokens[lineNb][1].substr(1,tokens[lineNb][1].length()-2);
+			/*if(tokens[lineNb][1] == "")
+				Error err(ERR_STR_EMPTY);*/
 			db(out,tokens[lineNb][1]);
 			break;
 					 }

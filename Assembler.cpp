@@ -21,13 +21,11 @@ Assembler::Assembler() {
 	lineNb = 0;
 	curAddress = 0;
 	totalBytes = 0;
+	verbose = false;
 	zeroFill = false;
 	alignLabels = false;
 	writeMmap = false;
 	outputFP = "output.c16";
-	// Say hello
-	std::cout	<< "\ntchip16 -- a Chip16 assembler\n"
-				<< "V 1.2.3 (C) 2011 tykel\n\n";
 }
 
 Assembler::~Assembler() {
@@ -106,6 +104,11 @@ void Assembler::tokenize(const char* fn) {
 					Error err(ERR_OP_ARGS,f,lineNbAlt,std::string("equ"));
 				else if(toks.size() > 3)
 					Error err(ERR_TOO_MANY,f,lineNbAlt,std::string("equ"));
+				else if(toks[2].size() > 2 && toks[2][0] == '$' && toks[2][1] == '-') {
+					unresConsts[toks[0]] = 
+						std::make_pair<int,std::string>(lineNbAlt,toks[2].substr(2,toks[2].size()-2));
+					continue;	// F*****g fugly... these will all become methods, I swear!
+				}
 				else if(atoi_t(toks[2]) > 0xFFFF)
 					Error err(ERR_NUM_OVERFLOW,f,lineNbAlt,std::string("equ"));
 				// Add to map
@@ -148,7 +151,11 @@ void Assembler::tokenize(const char* fn) {
 							// Drop messed up tokens and inject correct string
 							tokens[tokens.size()-1].resize(1);
 							tokens[tokens.size()-1].push_back(badString);
-							totalBytes += badString.size();
+							totalBytes += badString.size() - 2;
+							if(!labelNames.empty())
+								stringLines[labelNames.back()] = lineNbAlt;
+							else
+								Error err(ERR_STR_NOLABEL,fn,lineNbAlt,toks[1]);
 							// Old, hacky way
 							/*for(unsigned i=1; i<toks.size(); ++i)
 								totalBytes += toks[i].size();
@@ -350,9 +357,10 @@ void Assembler::outputFile() {
 			break;
 		}
 	}
-	std::cout << "OK\n";
+	if(verbose) {
+		std::cout << "OK\nOutput imports... ";
+	}
 	// Output imported binaries
-	std::cout << "Output imports... ";
 	for(unsigned i=0; i<imports.size(); ++i) {
 		int size = atoi_t(imports[i][2]);
 		char* buf = new char[size]();
@@ -364,20 +372,24 @@ void Assembler::outputFile() {
 		imp.close();
 		out.write(buf,size);
 	}
-	std::cout << "OK\n";
+	if(verbose)
+		std::cout << "OK\n";
 	// If -z, fill with 0's up to 64K
 	if(zeroFill) {
-		std::cout << "Zeroing memory up to 64K... ";
+		if(verbose)
+			std::cout << "Zeroing memory up to 64K... ";
 		char* zero = new char[0x10000-totalBytes];
 		for(int i=0; i<0x10000-totalBytes; ++i)
 			zero[i] = 0;
 		out.write(zero,0x10000-totalBytes);
-		std::cout << "OK\n";
+		if(verbose)
+			std::cout << "OK\n";
 	}
 	out.close();
 	// If -m, output mmap.txt
 	if(writeMmap) {
-		std::cout << "Output mmap.txt... ";
+		if(verbose)
+			std::cout << "Output mmap.txt... ";
 		std::ofstream mmap("mmap.txt");
 		if(!mmap.is_open())
 			Error err(ERR_IO,std::string("All"),0,std::string("mmap.txt"));
@@ -390,14 +402,25 @@ void Assembler::outputFile() {
 		std::map<int,std::string>::iterator itt;
 		for(itt = revConsts.begin(); itt != revConsts.end(); ++itt) {
 			if(std::find(labelNames.begin(),labelNames.end(),itt->second) != labelNames.end())
-				mmap << std::setw(20) << std::left << itt->second 
-					 << " : " << std::dec << itt->first << std::hex 
-					 << " (0x" << itt->first << ")\n";
+				mmap << std::setw(20) << std::left << std::dec << itt->first << std::hex 
+					 << " (0x" << itt->first << ")"
+					 << " : "  << itt->second << "\n";
 		}
 		mmap << "\n---------------------\n";
 		mmap.close();
-		std::cout << "OK\n";
+		if(verbose)
+			std::cout << "OK\n";
 	}
+}
+
+void Assembler::useVerbose() {
+	verbose = true;
+	// Say hello then!
+	std::cout	<< "tchip16 1.3 -- a chip16 assembler\n";
+}
+
+bool Assembler::isVerbose() {
+	return verbose;
 }
 
 void Assembler::useZeroFill() {
@@ -627,7 +650,11 @@ u16 Assembler::atoi_t(std::string str)
 	// Otherwise, assume it's decimal
 	else {
 		u16 val = 0;
-		for(size_t i=0; i<str.size(); ++i) {
+		int start = 0;
+		if(str[0] = '-') {
+			++start;
+		}
+		for(size_t i=start; i<str.size(); ++i) {
 			char c = str[i];
 			if(c >= 0x30 && c <= 0x39)
 				val += (int)( pow(10.f,(int)(str.size() - i - 1)) ) * (c - 0x30);
@@ -636,7 +663,7 @@ u16 Assembler::atoi_t(std::string str)
 		}
 		if(val > 0xFFFF)
 			Error err(ERR_NUM_OVERFLOW,files[lineNb],lines[lineNb],str);
-		return val;
+		return start ? (~val+1) : val;
 	}
 }
 
@@ -775,6 +802,25 @@ void Assembler::initMaps() {
 	mnemMap["sar"] = sar;
 	mnemMap["db"] = _db;
 
+}
+
+void Assembler::resolveConsts() {
+	for(unresMap::iterator it=unresConsts.begin();
+		it!=unresConsts.end(); ++it) {
+			// if the string is declared
+			if(consts.find(it->second.second) != consts.end()) {
+				int line = 0;
+				for(unsigned int i=0; i<lines.size(); ++i) {
+					if(lines[i] == stringLines[it->second.second])
+						line = i;
+				}
+				std::string str(tokens[line][1]);
+				// Add the string length to known consts
+				consts.insert(std::make_pair(it->first,str.substr(1,str.length()-2).length()));
+			}
+			else
+				Error err(ERR_NUM_NONE,outputFP,it->second.first,it->second.second);
+	}
 }
 
 void Assembler::fixOps() {
@@ -918,8 +964,9 @@ void Assembler::fixOps() {
 			case _db:
 				if(tokens[lineNb][1][0] == '"') {
 					int lastword = tokens[lineNb].size()-1;
-					if(tokens[lineNb][lastword][tokens[lineNb][lastword].size()-1] == '"')
+					if(tokens[lineNb][lastword][tokens[lineNb][lastword].size()-1] == '"') {
 						tokens[lineNb][0] = "db_str";
+					}
 					else
 						Error err(ERR_STR_NOTENDED,files[lineNb],lines[lineNb],tokens[lineNb][0]);
 				}

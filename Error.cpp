@@ -82,6 +82,9 @@ void Error::print(ERROR code) {
 	case ERR_STR_EMPTY:
 		std::cout	<< "Empty string is illegal (code " << code << ")\n";
 		break;
+	case ERR_STR_NOLABEL:
+		std::cout	<< "String has no label, cannot be referenced (code " << code << ")\n";
+		break;
 	default:
 		std::cout << "Unknown error encountered (code " << code << ")\n";
 		break;

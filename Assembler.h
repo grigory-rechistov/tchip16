@@ -25,6 +25,8 @@ typedef signed int		s32;
 
 typedef std::vector<std::string> line;
 typedef std::vector<line>		 lineList;
+typedef std::pair<int,std::string> lineValPair;
+typedef std::map<std::string,lineValPair> unresMap;
 
 const u32 MEM_SIZE = 64*1024;
 
@@ -37,11 +39,15 @@ public:
 	void setOutputFile(const char*);
 	// Build token array
 	void tokenize(const char*);
+	// Compute unresolved consts (eg strlen)
+	void resolveConsts();
 	// Convert mnemonics to internal opcodes
 	void fixOps();
 	// Write buffer to disk
 	void outputFile();
 	// Command line modifier methods
+	void useVerbose();
+	bool isVerbose();
 	void useZeroFill();
 	void useAlign();
 	void putMmap();
@@ -88,6 +94,8 @@ private:
 	// Imported binary files list
 	lineList imports;
 	// Lookup table
+	std::map<std::string,int> stringLines;
+	unresMap unresConsts;
 	std::map<std::string,int> consts;
 	std::vector<std::string> labelNames;
 	// Opcode map, register map,condition-code map, mnemonic map
@@ -100,6 +108,7 @@ private:
 	int curAddress;								// address in output bin
 	int totalBytes;								// size in B of output bin
 	// Command line modifiers
+	bool verbose;
 	bool zeroFill;
 	bool alignLabels;
 	bool writeMmap;

@@ -50,6 +50,8 @@ int main(int argc, char* argv[]) {
 					else
 						Error err(ERR_CMD_NONE);
 				}
+				else if(arg[1] == 'v' || arg[1] == 'V')
+					tc16->useVerbose();
 				else if(arg[1] == 'z' || arg[1] == 'Z')
 					tc16->useZeroFill();
 				else if(arg[1] == 'a' || arg[1] == 'A')
@@ -67,7 +69,9 @@ int main(int argc, char* argv[]) {
 				Error err(ERR_CMD_UNKNOWN);
 		}
 	}
-
+#ifdef _DEBUG
+	tc16->useVerbose();
+#endif
 	// Set the input file
 	if(argc > 1) {
 		if(argv[1][0] == '-' && argv[1][1] == 'h' || argv[1][1] == 'H') {
@@ -79,19 +83,20 @@ int main(int argc, char* argv[]) {
 			// Do stuff!
 			for(int i=0; i<nbFiles; ++i)
 				tc16->tokenize(argv[1+i]);
-			std::cout << "Building tokens... OK\n";
+			if(tc16->isVerbose())
+				std::cout << "Building tokens... OK\n";
 		}
 	}
 	else
 		Error err(ERR_NO_INPUT);
-	
 	tc16->fixOps();
+	tc16->resolveConsts();
 #ifdef _DEBUG
 	tc16->debugOut();
 #endif
 	tc16->outputFile();
-
-	std::cout << "\nBuild complete.\n";
+	if(tc16->isVerbose())
+		std::cout << "\nBuild complete.\n";
 
 #ifdef _DEBUG
 	WAIT;
@@ -100,17 +105,18 @@ int main(int argc, char* argv[]) {
 }
 
 void helpOut() {
-	std::cout <<	"Usage: ./tchip16 <source> [-o dest][-z][-a][-m][-h]\n\n"
+	std::cout << "Usage: tchip16 <source> [-o dest][-v][-z][-a][-m][-h]\n\n"
 		"\tsource: the input source filename\n"
+		"\t-v: switch to verbose output (default is silent)\n"
 		"\t-o: name the output file to dest\n"
 		"\t-z: if assembled code < 64K, zero rest up to 64K\n"
 		"\t-a: align labels to 4-byte boundaries\n"
 		"\t-m: output mmap.txt which displays the address of each label\n"
 		"\t-h: displays help text\n\n";
 
-	std::cout <<	"Directives:\n"
+	std::cout << "Directives:\n"
 		"\tinclude <file> :\n"
-		"\t\tFile is included at this point in the file\n"
+		"\t\tFile is included for use in current file\n"
 		"\t\tFiles may only be included once in the project\n\n"
 		"\timportbin <file> <offset> <length> <label> :\n"
 		"\t\tFile is read from (offset) to (offset+length), stored at label\n\n"

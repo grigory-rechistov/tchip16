@@ -1,19 +1,19 @@
 (C) T Kelsall, 2011 -- All rights reserved.
 	See LICENSE.txt for the program license.
 
+http://code.google.com/p/tchip16
 ------------------------------------------------------------------------------------
-CHANGELOG:
+CHANGELOG:	V 1.3
 ------------------------------------------------------------------------------------
 
-See commit notes on project homepage
-(http://code.google.com/p/tchip16)
-		
+- see commit comments on project homepage.
+
 ------------------------------------------------------------------------------------
 USAGE: 
 ------------------------------------------------------------------------------------
 
-LINUX:		./tchip16 <source> [-o dest][-z][-a][-c][-b][-m][-h]
-WINDOWS:	tchip16.exe <source> [-o dest][-z][-a][-c][-b][-m][-h]
+LINUX:		./tchip16 <source> [-o dest][-v][-z][-a][-c][-b][-m][-h]
+WINDOWS:	tchip16.exe <source> [-o dest][-v][-z][-a][-c][-b][-m][-h]
 
 Run tchip16 with the -h ("help") flag for a description of how they affect your program.
 
@@ -24,6 +24,7 @@ SYNTAX:
 tchip16 accepts standard assembly syntax. Here's an example:
 
 	constant1	equ 0x1000
+	constant2	equ $-string
 	lucky		equ 7
 	
 	label1: 	add r0, r1
@@ -50,6 +51,7 @@ tchip16 also features some directives to make your life easier:
 
 # EQU -- name equ val
 Allows you to define a constant (name) for use in instructions.
+Use $- prefixed to a string name for the length constant of that string (no '\0')
 
 # DB -- db val1 [...]
 		db "string"

@@ -187,7 +187,8 @@ void Assembler::tokenize(const char* fn) {
 }
 
 void Assembler::outputFile() {
-	std::cout << "Output code... ";
+	if(verbose)
+		std::cout << "Output code... ";
 	std::ofstream out(outputFP.c_str(),std::ios::out|std::ios::binary);
 	if(!out.is_open())
 		Error err(ERR_IO,outputFP,0,std::string("All"));
@@ -651,7 +652,7 @@ u16 Assembler::atoi_t(std::string str)
 	else {
 		u16 val = 0;
 		int start = 0;
-		if(str[0] = '-') {
+		if(str[0] == '-') {
 			++start;
 		}
 		for(size_t i=start; i<str.size(); ++i) {

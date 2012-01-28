@@ -1,6 +1,6 @@
 /*    
 	tchip16, an open-source Chip16 assembler
-    Copyright (C) 2011  Tim Kelsall
+    Copyright (C) 2010-12  Tim Kelsall
 	[...]
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
@@ -12,7 +12,7 @@
 typedef unsigned char OPCODE;
 
 enum chip16_opcodes {
-	NOP =	0x00, CLS, VBLNK, BGC, SPR, DRW_I, DRW_R, RND, FLIP, SND0, SND1, SND2, SND3,
+	NOP =	0x00, CLS, VBLNK, BGC, SPR, DRW_I, DRW_R, RND, FLIP, SND0, SND1, SND2, SND3, SNP, SNG,
 	JMP_I = 0x10, JMC, Jx, JME, CALL_I, RET, JMP_R, Cx, CALL_R,
 	LDI_R = 0x20, LDI_SP, LDM_I, LDM_R, MOV,
 	STM_I = 0x30, STM_R,
@@ -30,7 +30,7 @@ enum chip16_opcodes {
 };
 
 enum chip16_mnemonics {
-	nop,cls,vblnk,spr,drw,rnd,flip,snd0,snd1,snd2,snd3,snd4,jmp,jmc,jmz,jx,jme,call,ret,
+	nop,cls,vblnk,spr,drw,rnd,flip,snd0,snd1,snd2,snd3,snp,sng,jmp,jmc,jmz,jx,jme,call,ret,
 	cx,ldi,ldm,mov,stm,addi,add,subi,sub,cmpi,cmp,muli,mul,divi,_div,andi,_and,tsti,tst,
 	ori,_or,xori,_xor,shl,shr,sal,sar,push,pop,pushall,popall,pushf,popf,_db
 };

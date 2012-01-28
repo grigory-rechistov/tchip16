@@ -1,6 +1,6 @@
 /*    
 	tchip16, an open-source Chip16 assembler
-    Copyright (C) 2011  Tim Kelsall
+    Copyright (C) 2010-12  Tim Kelsall
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by

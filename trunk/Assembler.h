@@ -1,6 +1,6 @@
 /*    
 	tchip16, an open-source Chip16 assembler
-    Copyright (C) 2011  Tim Kelsall
+    Copyright (C) 2010-12  Tim Kelsall
 	[...]
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
@@ -64,7 +64,7 @@ private:
 	void op_void(std::ofstream&,OPCODE);				
 	// jmp, jmc, jmz, call, spr, snd[1-3]
 	void op_imm(std::ofstream&,OPCODE,u16);	
-	// jx, cx
+	// jx, cx, snp, sng
 	void op_n_imm(std::ofstream&,OPCODE,u8,u16);
 	// bgc
 	void op_n(std::ofstream&,OPCODE,u8);				

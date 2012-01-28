@@ -271,7 +271,28 @@ void Assembler::outputFile() {
 				imm = atoi_t(tokens[lineNb][2]);
 			op_n_imm(out,opcode,n,imm);
 			break;
-		case BGC:
+        case SNG:
+            if(tokens[lineNb].size() != 3)
+                Error err(ERR_OP_ARGS,files[lineNb],lines[lineNb],tokens[lineNb][0]);
+            // Overflow check on n
+			if(consts.find(tokens[lineNb][1]) != consts.end()) {
+				if(consts[tokens[lineNb][1]] > 0xFF)
+					Error err(ERR_NUM_OVERFLOW,files[lineNb],lines[lineNb],tokens[lineNb][1]);
+				n = consts[tokens[lineNb][1]];
+			}
+			else
+				n = (u8)atoi_t(tokens[lineNb][1]);
+			// Overflow check on imm
+            if(consts.find(tokens[lineNb][2]) != consts.end()) {
+				if(consts[tokens[lineNb][2]] > 0xFFFF)
+					Error err(ERR_NUM_OVERFLOW,files[lineNb],lines[lineNb],tokens[lineNb][2]);
+				imm = consts[tokens[lineNb][2]];
+			}
+			else
+				imm = (u16)atoi_t(tokens[lineNb][2]);
+			op_n_imm(out,opcode,n,imm);
+			break;
+        case BGC:
 			if(tokens[lineNb].size() > 2 || tokens[lineNb].size() < 2)
 				Error err(ERR_OP_ARGS,files[lineNb],lines[lineNb],tokens[lineNb][0]);
 			// Overflow check on n
@@ -310,7 +331,7 @@ void Assembler::outputFile() {
 				Error err(ERR_OP_ARGS,files[lineNb],lines[lineNb],tokens[lineNb][0]);
 			op_r(out,opcode,regMap[tokens[lineNb][1]]);
 			break;
-		case RND: case LDI_R: case LDI_SP: case LDM_I: case STM_I: case ADDI: case SUBI: 
+		case SNP: RND: case LDI_R: case LDI_SP: case LDM_I: case STM_I: case ADDI: case SUBI: 
 		case MULI: case DIVI: case CMPI: case ANDI: case TSTI: case ORI: case XORI:
 			if(tokens[lineNb].size() > 3 || tokens[lineNb].size() < 3)
 				Error err(ERR_OP_ARGS,files[lineNb],lines[lineNb],tokens[lineNb][0]);
@@ -451,7 +472,7 @@ void Assembler::outputFile() {
 void Assembler::useVerbose() {
 	verbose = true;
 	// Say hello then!
-	std::cout	<< "tchip16 1.3 -- a chip16 assembler\n";
+	std::cout	<< "tchip16 1.3.1 -- a chip16 assembler\n";
 }
 
 bool Assembler::isVerbose() {
@@ -717,6 +738,8 @@ void Assembler::initMaps() {
 	opMap["snd1"] = SND1;
 	opMap["snd2"] = SND2;
 	opMap["snd3"] = SND3;
+	opMap["snp"] = SNP;
+	opMap["sng"] = SNG;
 	opMap["jmp_i"] = JMP_I;
 	opMap["jmp_r"] = JMP_R;
 	opMap["jmc"] = JMC;

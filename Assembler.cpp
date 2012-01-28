@@ -239,7 +239,7 @@ void Assembler::outputFile() {
 			op_void(out,opcode);
 			break;
 		case JMP_I: case JMC: case CALL_I: 
-		case SPR: case SND1: case SND2: case SND3: {
+		case SPR: case SND1: case SND2: case SND3: case PAL_I: {
 			if(tokens[lineNb].size() > 2 || tokens[lineNb].size() < 2)
 				Error err(ERR_OP_ARGS,files[lineNb],lines[lineNb],tokens[lineNb][0]);
 			// Overflow check on imm
@@ -326,7 +326,7 @@ void Assembler::outputFile() {
 				n2 = (u8)atoi_t(tokens[lineNb][2]);
 			op_n_n(out,opcode,n1,n2);
 			break;
-		case CALL_R: case JMP_R: case PUSH: case POP:
+		case CALL_R: case JMP_R: case PUSH: case POP: case PAL_R:
 			if(tokens[lineNb].size() > 2 || tokens[lineNb].size() < 2)
 				Error err(ERR_OP_ARGS,files[lineNb],lines[lineNb],tokens[lineNb][0]);
 			op_r(out,opcode,regMap[tokens[lineNb][1]]);
@@ -472,7 +472,7 @@ void Assembler::outputFile() {
 void Assembler::useVerbose() {
 	verbose = true;
 	// Say hello then!
-	std::cout	<< "tchip16 1.3.1 -- a chip16 assembler\n";
+	std::cout	<< "tchip16 1.3.2 -- a chip16 assembler\n";
 }
 
 bool Assembler::isVerbose() {
@@ -795,31 +795,33 @@ void Assembler::initMaps() {
 	opMap["popall"] = POPALL;
 	opMap["pushf"] = PUSHF;
 	opMap["popf"] = POPF;
+	opMap["pal_i"] = PAL_I;
+	opMap["pal_r"] = PAL_R;
 	opMap["db_n"] = DB;
 	opMap["db_str"] = DB_STR;
 	// Register mapping
 	regMap["r0"] = 0x0; regMap["R0"] = 0x0;
-	regMap["r1"] = 0x1; regMap["R1"] = 0x0;
-	regMap["r2"] = 0x2; regMap["R2"] = 0x0;
-	regMap["r3"] = 0x3; regMap["R3"] = 0x0;
-	regMap["r4"] = 0x4; regMap["R4"] = 0x0;
-	regMap["r5"] = 0x5; regMap["R5"] = 0x0;
-	regMap["r6"] = 0x6; regMap["R6"] = 0x0;
-	regMap["r7"] = 0x7; regMap["R7"] = 0x0;
-	regMap["r8"] = 0x8; regMap["R8"] = 0x0;
-	regMap["r9"] = 0x9; regMap["R9"] = 0x0;
-	regMap["ra"] = 0xA; regMap["RA"] = 0x0;
-	regMap["rb"] = 0xB; regMap["RB"] = 0x0;
-	regMap["rc"] = 0xC; regMap["RC"] = 0x0;
-	regMap["rd"] = 0xD; regMap["RD"] = 0x0;
-	regMap["re"] = 0xE; regMap["RE"] = 0x0;
-	regMap["rf"] = 0xF; regMap["RF"] = 0x0;
-	regMap["r10"] = 0xA; regMap["R10"] = 0x0;
-	regMap["r11"] = 0xB; regMap["R11"] = 0x0;
-	regMap["r12"] = 0xC; regMap["R12"] = 0x0;
-	regMap["r13"] = 0xD; regMap["R13"] = 0x0;
-	regMap["r14"] = 0xE; regMap["R14"] = 0x0;
-	regMap["r15"] = 0xF; regMap["R15"] = 0x0;
+	regMap["r1"] = 0x1; regMap["R1"] = 0x1;
+	regMap["r2"] = 0x2; regMap["R2"] = 0x2;
+	regMap["r3"] = 0x3; regMap["R3"] = 0x3;
+	regMap["r4"] = 0x4; regMap["R4"] = 0x4;
+	regMap["r5"] = 0x5; regMap["R5"] = 0x5;
+	regMap["r6"] = 0x6; regMap["R6"] = 0x6;
+	regMap["r7"] = 0x7; regMap["R7"] = 0x7;
+	regMap["r8"] = 0x8; regMap["R8"] = 0x8;
+	regMap["r9"] = 0x9; regMap["R9"] = 0x9;
+	regMap["ra"] = 0xA; regMap["RA"] = 0xA;
+	regMap["rb"] = 0xB; regMap["RB"] = 0xB;
+	regMap["rc"] = 0xC; regMap["RC"] = 0xC;
+	regMap["rd"] = 0xD; regMap["RD"] = 0xD;
+	regMap["re"] = 0xE; regMap["RE"] = 0xE;
+	regMap["rf"] = 0xF; regMap["RF"] = 0xF;
+	regMap["r10"] = 0xA; regMap["R10"] = 0xA;
+	regMap["r11"] = 0xB; regMap["R11"] = 0xB;
+	regMap["r12"] = 0xC; regMap["R12"] = 0xC;
+	regMap["r13"] = 0xD; regMap["R13"] = 0xD;
+	regMap["r14"] = 0xE; regMap["R14"] = 0xE;
+	regMap["r15"] = 0xF; regMap["R15"] = 0xF;
 	// Condition modes in branching operations
 	condMap["z"] = 0x0;
 	condMap["mz"] = 0x0;
@@ -858,6 +860,7 @@ void Assembler::initMaps() {
 	mnemMap["sal"] = sal;
 	mnemMap["shr"] = shr;
 	mnemMap["sar"] = sar;
+	mnemMap["pal"] = pal;
 	mnemMap["db"] = _db;
 
 }
@@ -1018,6 +1021,14 @@ void Assembler::fixOps() {
 					tokens[lineNb][0] = "shr_r";
 				else
 					tokens[lineNb][0] = "shr_n";
+				break;
+			case pal:
+				if(tokens[lineNb].size() != 3)
+					Error err(ERR_OP_ARGS,files[lineNb],lines[lineNb],tokens[lineNb][0]);
+				if(regMap.find(tokens[lineNb][2]) != regMap.end())
+					tokens[lineNb][0] = "pal_r";
+				else
+					tokens[lineNb][0] = "pal_i";
 				break;
 			case _db:
 				if(tokens[lineNb][1][0] == '"') {

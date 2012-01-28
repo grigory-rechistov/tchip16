@@ -25,6 +25,7 @@ enum chip16_opcodes {
 	DIVI =	0xA0, DIV_R2, DIV_R3,
 	SHL_N = 0xB0, SHR_N, SAR_N, SHL_R, SHR_R, SAR_R,
 	PUSH =	0xC0, POP, PUSHALL, POPALL, PUSHF, POPF,
+	PAL_I = 0xD0, PAL_R,
 	// Pseudo-opcodes
 	DB =	0xFA, DB_STR
 };
@@ -32,7 +33,7 @@ enum chip16_opcodes {
 enum chip16_mnemonics {
 	nop,cls,vblnk,spr,drw,rnd,flip,snd0,snd1,snd2,snd3,snp,sng,jmp,jmc,jmz,jx,jme,call,ret,
 	cx,ldi,ldm,mov,stm,addi,add,subi,sub,cmpi,cmp,muli,mul,divi,_div,andi,_and,tsti,tst,
-	ori,_or,xori,_xor,shl,shr,sal,sar,push,pop,pushall,popall,pushf,popf,_db
+	ori,_or,xori,_xor,shl,shr,sal,sar,push,pop,pushall,popall,pushf,popf,pal,_db
 };
 
 #endif

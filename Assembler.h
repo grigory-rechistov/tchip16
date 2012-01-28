@@ -62,7 +62,7 @@ private:
 
 	// nop, cls, vblnk, ret, snd0, pushall, popall
 	void op_void(std::ofstream&,OPCODE);				
-	// jmp, jmc, jmz, call, spr, snd[1-3]
+	// jmp, jmc, jmz, call, spr, snd[1-3], pal
 	void op_imm(std::ofstream&,OPCODE,u16);	
 	// jx, cx, snp, sng
 	void op_n_imm(std::ofstream&,OPCODE,u8,u16);
@@ -70,7 +70,7 @@ private:
 	void op_n(std::ofstream&,OPCODE,u8);				
 	// flip
 	void op_n_n(std::ofstream&,OPCODE,u8,u8);
-	// jmp_r, call_r
+	// jmp_r, call_r, pal_r
 	void op_r(std::ofstream&,OPCODE,u8);
 	// rnd, ldi, ldm, stm, addi, subi, muli, divi, cmpi, andi, tsti, ori, xori
 	void op_r_imm(std::ofstream&,OPCODE,u8,u16);

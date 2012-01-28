@@ -112,6 +112,9 @@ private:
 	bool zeroFill;
 	bool alignLabels;
 	bool writeMmap;
+    // In-file modifiers
+    int start;
+    float version;
 };
 
 #endif

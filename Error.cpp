@@ -1,3 +1,11 @@
+/*    
+	tchip16, an open-source Chip16 assembler
+    Copyright (C) 2010-2012  Tim Kelsall
+	[...]
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #include <iostream>
 #include <cstdlib>
 

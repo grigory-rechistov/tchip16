@@ -1,6 +1,6 @@
 /*    
 	tchip16, an open-source Chip16 assembler
-    Copyright (C) 2011  Tim Kelsall
+    Copyright (C) 2010-2012  Tim Kelsall
 	[...]
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
@@ -14,6 +14,8 @@
 #include <cmath>
 
 #include "Assembler.h"
+#include "RomHeader.h"
+#include "crc.h"
 
 Assembler::Assembler() {
 	// Initialize
@@ -26,6 +28,8 @@ Assembler::Assembler() {
 	alignLabels = false;
 	writeMmap = false;
 	outputFP = "output.c16";
+    start = 0;
+    version = 1.0f;
 }
 
 Assembler::~Assembler() {
@@ -114,6 +118,22 @@ void Assembler::tokenize(const char* fn) {
 				// Add to map
 				consts[toks[0]] = atoi_t(toks[2]);
 			}
+            else if(toks[0] == "start") {
+                if(toks.size() == 1)
+                    Error err(ERR_OP_ARGS,f,lineNbAlt,std::string("start"));
+                else if(toks.size() > 2)
+                    Error err(ERR_TOO_MANY,f,lineNbAlt,std::string("start"));
+                start = atoi_t(toks[1]);
+                // TODO: Handle non-numeric (lookup label) cases
+            }
+            else if(toks[0] == "version") {
+                if(toks.size() == 1)
+                    Error err(ERR_OP_ARGS,f,lineNbAlt,std::string("start"));
+                else if(toks.size() > 2)
+                    Error err(ERR_TOO_MANY,f,lineNbAlt,std::string("start"));
+                std::stringstream vss(toks[1]);
+                vss >> version;
+            }
 			else {
 				if(toks[0].size() > 1 &&
 				   toks[0][0] == ':' || toks[0][toks[0].size()-1] == ':') {
@@ -192,6 +212,20 @@ void Assembler::outputFile() {
 	std::ofstream out(outputFP.c_str(),std::ios::out|std::ios::binary);
 	if(!out.is_open())
 		Error err(ERR_IO,outputFP,0,std::string("All"));
+    // Output header
+    u32 ver = 0; // TODO: Extract fractional and integer parts
+    ch16_header header;
+    header.magic = 0x36314843;
+    header.reserved = 0x00;
+    header.spec_ver = ver;
+    header.rom_size = totalBytes;
+    // Major problem... can't do the CRC without a data buffer, which
+    // is not precomputed. Rewrite required :(
+    crc_t c = crc_init();
+    //c = crc_update(c,
+    header.crc32_sum = 0;
+    
+    // TODO: Write the header to the file
 	// Output code
 	for(lineNb=0; lineNb<tokens.size(); ++lineNb) {
 		u8 opcode = opMap[tokens[lineNb][0]];

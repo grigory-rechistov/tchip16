@@ -331,7 +331,7 @@ void Assembler::outputFile() {
 				Error err(ERR_OP_ARGS,files[lineNb],lines[lineNb],tokens[lineNb][0]);
 			op_r(out,opcode,regMap[tokens[lineNb][1]]);
 			break;
-		case SNP: RND: case LDI_R: case LDI_SP: case LDM_I: case STM_I: case ADDI: case SUBI: 
+		case SNP: case RND: case LDI_R: case LDI_SP: case LDM_I: case STM_I: case ADDI: case SUBI: 
 		case MULI: case DIVI: case CMPI: case ANDI: case TSTI: case ORI: case XORI:
 			if(tokens[lineNb].size() > 3 || tokens[lineNb].size() < 3)
 				Error err(ERR_OP_ARGS,files[lineNb],lines[lineNb],tokens[lineNb][0]);
@@ -472,7 +472,7 @@ void Assembler::outputFile() {
 void Assembler::useVerbose() {
 	verbose = true;
 	// Say hello then!
-	std::cout	<< "tchip16 1.3.2 -- a chip16 assembler\n";
+	std::cout	<< "tchip16 1.3.3 -- a chip16 assembler\n";
 }
 
 bool Assembler::isVerbose() {
@@ -1023,9 +1023,9 @@ void Assembler::fixOps() {
 					tokens[lineNb][0] = "shr_n";
 				break;
 			case pal:
-				if(tokens[lineNb].size() != 3)
+				if(tokens[lineNb].size() != 2)
 					Error err(ERR_OP_ARGS,files[lineNb],lines[lineNb],tokens[lineNb][0]);
-				if(regMap.find(tokens[lineNb][2]) != regMap.end())
+				if(regMap.find(tokens[lineNb][1]) != regMap.end())
 					tokens[lineNb][0] = "pal_r";
 				else
 					tokens[lineNb][0] = "pal_i";

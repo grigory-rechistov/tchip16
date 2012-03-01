@@ -38,4 +38,4 @@ You should use it to compile your code into a Chip16 binary file.
 == Is tchip16 available for my system? ==
 
 _tchip16_ is cross-platform, in the sense that it does not include platform-specific code, and should build without problems on linux, Mac OS X, and Windows.
-That said, it was developed on Windows, so _only Windows (x86, 32-bit) binaries are available_ -- for other systems, you will have to compile from source.
+That said, no binaries are available for Max OS X for now -- you will have to compile from source if you use it.

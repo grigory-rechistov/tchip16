@@ -27,7 +27,7 @@ enum chip16_opcodes {
 	PUSH =	0xC0, POP, PUSHALL, POPALL, PUSHF, POPF,
 	PAL_I = 0xD0, PAL_R,
 	// Pseudo-opcodes
-	DB =	0xFA, DB_STR
+	DB =	0xFA, DB_STR, DW
 };
 
 enum chip16_mnemonics {

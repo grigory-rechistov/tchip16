@@ -1,9 +1,9 @@
-(C) T Kelsall, 2011 -- All rights reserved.
+(C) T Kelsall, 2012 -- All rights reserved.
 	See LICENSE.txt for the program license.
 
 http://code.google.com/p/tchip16
 ------------------------------------------------------------------------------------
-CHANGELOG:	V 1.3
+CHANGELOG:	V 1.3.4
 ------------------------------------------------------------------------------------
 
 - see commit comments on project homepage.
@@ -12,8 +12,8 @@ CHANGELOG:	V 1.3
 USAGE: 
 ------------------------------------------------------------------------------------
 
-LINUX:		./tchip16 <source> [-o dest][-v][-z][-a][-c][-b][-m][-h]
-WINDOWS:	tchip16.exe <source> [-o dest][-v][-z][-a][-c][-b][-m][-h]
+LINUX:		./tchip16 <source> [-o dest][-v][-z][-a][-m][-h]
+WINDOWS:	tchip16.exe <source> [-o dest][-v][-z][-a][-m][-h]
 
 Run tchip16 with the -h ("help") flag for a description of how they affect your program.
 
@@ -37,6 +37,7 @@ tchip16 accepts standard assembly syntax. Here's an example:
 				call print_str
 	string: 	db "Hello world"
 	:vals		db 0x00, $01, #02, 10, 11h
+    w_vals:     dw 256, 65535, -2000
 	print_str:	ret
 	
 Labels may end OR start with a colon ":", NOT both
@@ -57,6 +58,10 @@ Use $- prefixed to a string name for the length constant of that string (no '\0'
 		db "string"
 Allows you to store either bytes or a string at this location in your code.
 
+# DW -- dw val1 [...]
+Allows you to store 16-bit words in little endian format at this location in your
+code.
+
 # INCLUDE -- include otherfile.s
 Allows you to import another source file at this location in your code.
 Files may only be included ONCE in the whole project.
@@ -66,4 +71,5 @@ helper files, which in turn should be as self-contained as possible.
 # IMPORTBIN -- importbin filename offset n label
 Allows you to import a binary file, which will be appended verbatim at the end of
 the code. They are stored in the order they are imported.
-Imported: filename, from address offset to (offset+n), starting at label
+Imported: filename, from address offset to (offset+n), written from address label
+in the ROM.

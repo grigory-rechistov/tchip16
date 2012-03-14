@@ -7,6 +7,8 @@ LDFLAGS = -lm
 OBJECTS = main.o Assembler.o Error.o
 D_OBJECTS = main.d.o Assembler.d.o Error.d.o
 
+.PHONY: all clean
+
 # RELEASE TARGET (DEFAULT)
 
 tchip16: ${OBJECTS}

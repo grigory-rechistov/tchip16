@@ -190,6 +190,11 @@ void Assembler::tokenize(const char* fn) {
 						int pad = alignLabels ? (totalBytes % 4 != 0 ? 4 - (totalBytes % 4) : 0) : 0;
 						totalBytes += pad;
 					}
+                    else if(toks[0] == "dw" && toks.size() > 1) {
+                        totalBytes += 2*(toks.size() - 1);
+                        int pad = alignLabels ? (totalBytes % 4 != 0 ? 4 - (totalBytes % 4) : 0) : 0;
+                        totalBytes += pad;
+                    }
 					else
 						totalBytes += 4;
 				}
@@ -329,6 +334,8 @@ void Assembler::outputFile() {
 		case CALL_R: case JMP_R: case PUSH: case POP: case PAL_R:
 			if(tokens[lineNb].size() > 2 || tokens[lineNb].size() < 2)
 				Error err(ERR_OP_ARGS,files[lineNb],lines[lineNb],tokens[lineNb][0]);
+            if(regMap.find(tokens[lineNb][1]) == regMap.end())
+                Error err(ERR_OP_ARGS,files[lineNb],lines[lineNb],tokens[lineNb][0]);
 			op_r(out,opcode,regMap[tokens[lineNb][1]]);
 			break;
 		case SNP: case RND: case LDI_R: case LDI_SP: case LDM_I: case STM_I: case ADDI: case SUBI: 
@@ -343,6 +350,8 @@ void Assembler::outputFile() {
 			}
 			else
 				imm = atoi_t(tokens[lineNb][2]);
+            if(regMap.find(tokens[lineNb][1]) == regMap.end())
+                Error err(ERR_OP_ARGS,files[lineNb],lines[lineNb],tokens[lineNb][0]);
 			op_r_imm(out,opcode,(u8)regMap[tokens[lineNb][1]],imm);
 			break;
 		case SHL_N: case SHR_N: case SAR_N:
@@ -356,6 +365,8 @@ void Assembler::outputFile() {
 			}
 			else
 				n = (u8)atoi_t(tokens[lineNb][2]);
+            if(regMap.find(tokens[lineNb][1]) == regMap.end())
+                Error err(ERR_OP_ARGS,files[lineNb],lines[lineNb],tokens[lineNb][0]);
 			op_r_n(out,opcode,(u8)regMap[tokens[lineNb][1]],n);
 			break;
 		case DRW_I: case JME:
@@ -369,6 +380,9 @@ void Assembler::outputFile() {
 			}
 			else
 				imm = atoi_t(tokens[lineNb][3]);
+            if(regMap.find(tokens[lineNb][1]) == regMap.end() ||
+                    regMap.find(tokens[lineNb][2]) == regMap.end())
+                Error err(ERR_OP_ARGS,files[lineNb],lines[lineNb],tokens[lineNb][0]);
 			op_r_r_imm(out,opcode,(u8)regMap[tokens[lineNb][1]],
 				(u8)regMap[tokens[lineNb][2]],imm);
 			break;
@@ -383,6 +397,10 @@ void Assembler::outputFile() {
 		case XOR_R3: case DRW_R:
 			if(tokens[lineNb].size() > 4 || tokens[lineNb].size() < 4)
 				Error err(ERR_OP_ARGS,files[lineNb],lines[lineNb],tokens[lineNb][0]);
+            if(regMap.find(tokens[lineNb][1]) == regMap.end() ||
+                    regMap.find(tokens[lineNb][2]) == regMap.end() ||
+                    regMap.find(tokens[lineNb][3]) == regMap.end())
+                Error err(ERR_OP_ARGS,files[lineNb],lines[lineNb],tokens[lineNb][0]);
 			op_r_r_r(out,opcode,(u8)regMap[tokens[lineNb][1]],
 				(u8)regMap[tokens[lineNb][2]],(u8)regMap[tokens[lineNb][3]]);
 			break;
@@ -399,6 +417,19 @@ void Assembler::outputFile() {
 			db(out,vals);
 			break;
 				}
+        case DW: {
+            if(tokens[lineNb].size() == 1)
+                Error err(ERR_OP_ARGS,files[lineNb],lines[lineNb],tokens[lineNb][0]);
+            std::vector<u16> vals;
+			for(unsigned j=1; j<tokens[lineNb].size(); ++j) {
+				u32 val = atoi_t(tokens[lineNb][j]);
+				if(val > 0xFFFF)
+					Error err(ERR_NUM_OVERFLOW,files[lineNb],lines[lineNb],tokens[lineNb][0]);
+				vals.push_back((u16)val);
+			}
+			dw(out,vals);
+			break;
+                 }
 		case DB_STR: {
 			if(tokens[lineNb].size() == 1)
 				Error err(ERR_OP_ARGS,files[lineNb],lines[lineNb],tokens[lineNb][0]);
@@ -458,8 +489,8 @@ void Assembler::outputFile() {
 		std::map<int,std::string>::iterator itt;
 		for(itt = revConsts.begin(); itt != revConsts.end(); ++itt) {
 			if(std::find(labelNames.begin(),labelNames.end(),itt->second) != labelNames.end())
-				mmap << std::setw(20) << std::left << std::dec << itt->first << std::hex 
-					 << " (0x" << itt->first << ")"
+				mmap << std::hex << " 0x" << std::setw(4) 
+                     << std::setfill('0') << itt->first 
 					 << " : "  << itt->second << "\n";
 		}
 		mmap << "\n---------------------\n";
@@ -472,7 +503,7 @@ void Assembler::outputFile() {
 void Assembler::useVerbose() {
 	verbose = true;
 	// Say hello then!
-	std::cout	<< "tchip16 1.3.3 -- a chip16 assembler\n";
+	std::cout	<< "tchip16 1.3.4 -- a chip16 assembler\n";
 }
 
 bool Assembler::isVerbose() {
@@ -657,6 +688,19 @@ void Assembler::db(std::ofstream& bin, std::vector<u8>& bytes) {
 	}
 }
 
+void Assembler::dw(std::ofstream& bin, std::vector<u16>& words) {
+	for(unsigned i=0; i<words.size(); ++i) {
+		char out[2] = {(char)(words[i] & 0xFF),
+                       (char)(words[i] >> 8)};
+		bin.write(out,2);
+	}
+	if(alignLabels && (words.size() % 4) != 0) {
+		char pad = 0x00;
+		for(unsigned i=0; i<4-(words.size()%4); ++i)
+			bin.write(&pad,1);
+	}
+}
+
 void Assembler::db(std::ofstream& bin, std::string& str) {
 	for(unsigned i=0; i<str.size(); ++i) {
 		char out = str[i];
@@ -690,7 +734,7 @@ u16 Assembler::atoi_t(std::string str)
 			str = str.substr(0,str.size()-1);
 		// Number is bigger than 16-bit, not allowed
 		if(str.size() > 4)
-			Error err(ERR_NUM_OVERFLOW,files[lineNb],lines[lineNb],str);
+			Error err(ERR_NUM_OVERFLOW,files[lineNb],lines[lineNb],tokens[lineNb][0]);
 		u16 val = 0;
 		for(size_t i=0; i<str.size(); ++i) {
 			char c = str[i];
@@ -699,7 +743,7 @@ u16 Assembler::atoi_t(std::string str)
 			else if(c >= 0x41 && c <= 0x46)
 				val += (int)( pow(16.f,(int)(str.size() - i - 1)) ) * (c - 0x41 + 10);
 			else 
-				Error err(ERR_NAN,files[lineNb],lines[lineNb],str);
+				Error err(ERR_NAN,files[lineNb],lines[lineNb],tokens[lineNb][0]);
 		}
 		return val;
 	}
@@ -710,6 +754,9 @@ u16 Assembler::atoi_t(std::string str)
 		if(str[0] == '-') {
 			++start;
 		}
+        // Number does not fit than 16-bits
+        if(str.size() - start > 4)
+            Error err(ERR_NUM_OVERFLOW,files[lineNb],lines[lineNb],tokens[lineNb][0]);
 		for(size_t i=start; i<str.size(); ++i) {
 			char c = str[i];
 			if(c >= 0x30 && c <= 0x39)
@@ -717,8 +764,6 @@ u16 Assembler::atoi_t(std::string str)
 			else
 				Error err(ERR_NAN,files[lineNb],lines[lineNb],str);
 		}
-		if(val > 0xFFFF)
-			Error err(ERR_NUM_OVERFLOW,files[lineNb],lines[lineNb],str);
 		return start ? (~val+1) : val;
 	}
 }
@@ -799,6 +844,7 @@ void Assembler::initMaps() {
 	opMap["pal_r"] = PAL_R;
 	opMap["db_n"] = DB;
 	opMap["db_str"] = DB_STR;
+    opMap["dw"] = DW;
 	// Register mapping
 	regMap["r0"] = 0x0; regMap["R0"] = 0x0;
 	regMap["r1"] = 0x1; regMap["R1"] = 0x1;

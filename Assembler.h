@@ -86,6 +86,7 @@ private:
 	// Pseudo-instructions
 	void db(std::ofstream& bin, std::vector<u8>&);
 	void db(std::ofstream& bin, std::string&);
+    void dw(std::ofstream& bin, std::vector<u16>&);
 
 	// Parsed source file
 	lineList tokens;

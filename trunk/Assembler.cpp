@@ -409,7 +409,12 @@ void Assembler::outputFile() {
 				Error err(ERR_OP_ARGS,files[lineNb],lines[lineNb],tokens[lineNb][0]);
 			std::vector<u8> vals;
 			for(unsigned j=1; j<tokens[lineNb].size(); ++j) {
-				u16 val = atoi_t(tokens[lineNb][j]);
+                u16 val;
+                // Overflow check
+                if(consts.find(tokens[lineNb][j]) != consts.end()) 
+                    val = consts[tokens[lineNb][j]];
+                else
+                    val = atoi_t(tokens[lineNb][j]);
 				if(val > 0xFF)
 					Error err(ERR_NUM_OVERFLOW,files[lineNb],lines[lineNb],tokens[lineNb][0]);
 				vals.push_back((u8)val);
@@ -422,9 +427,12 @@ void Assembler::outputFile() {
                 Error err(ERR_OP_ARGS,files[lineNb],lines[lineNb],tokens[lineNb][0]);
             std::vector<u16> vals;
 			for(unsigned j=1; j<tokens[lineNb].size(); ++j) {
-				u32 val = atoi_t(tokens[lineNb][j]);
-				if(val > 0xFFFF)
-					Error err(ERR_NUM_OVERFLOW,files[lineNb],lines[lineNb],tokens[lineNb][0]);
+                u16 val;
+                // Overflow check
+                if(consts.find(tokens[lineNb][j]) != consts.end()) 
+                    val = consts[tokens[lineNb][j]];
+                else
+                    val = atoi_t(tokens[lineNb][j]);
 				vals.push_back((u16)val);
 			}
 			dw(out,vals);

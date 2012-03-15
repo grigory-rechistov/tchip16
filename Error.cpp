@@ -22,7 +22,7 @@ Error::Error(ERROR code) {
 }
 
 Error::Error(ERROR code, const std::string& fn, int lineNb, const std::string& str) {
-	std::cout << fn.c_str() << ":" << lineNb << ":"
+	std::cout << fn.c_str() << ":" << lineNb << ": "
 		      << "error: (" << str.c_str() << ") ";
 	print(code);
 }

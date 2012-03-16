@@ -50,15 +50,17 @@ int main(int argc, char* argv[]) {
 					else
 						Error err(ERR_CMD_NONE);
 				}
-				else if(arg[1] == 'v' || arg[1] == 'V')
+				else if(arg == "-v" || arg == "-V" || arg == "--verbose")
 					tc16->useVerbose();
-				else if(arg[1] == 'z' || arg[1] == 'Z')
+				else if(arg == "-z" || arg == "-Z" || arg == "--zero")
 					tc16->useZeroFill();
-				else if(arg[1] == 'a' || arg[1] == 'A')
+				else if(arg == "-a" || arg == "-A" || arg == "--align")
 					tc16->useAlign();
-				else if(arg[1] == 'm' || arg[1] == 'M')
+				else if(arg == "-m" || arg == "-M" || arg == "--mmap")
 					tc16->putMmap();
-				else if(arg[1] == 'h' || arg[1] == 'H') {
+                else if(arg == "-r" || arg == "-R" || arg == "--raw")
+                    tc16->noHeader();
+				else if(arg == "-h" || arg == "-H" || arg == "--help") {
 					helpOut();
 					return 0;
 				}

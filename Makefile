@@ -4,24 +4,28 @@ CC = g++
 CFLAGS = -O2
 D_CFLAGS = -g -D _DEBUG
 LDFLAGS = -lm
-OBJECTS = main.o Assembler.o Error.o
-D_OBJECTS = main.d.o Assembler.d.o Error.d.o
+OBJECTS = obj/main.o obj/Assembler.o obj/Error.o obj/crc.o
+D_OBJECTS = obj/main.d.o obj/Assembler.d.o obj/Error.d.o obj/crc.d.o
 
-.PHONY: all clean
+.PHONY: all debug clean win windows win_debug windows_debug
 
+#####################################################################
 # RELEASE TARGET (DEFAULT)
 
 tchip16: ${OBJECTS}
 	${CC} ${CFLAGS} ${OBJECTS} ${LDFLAGS} -s -o $@
 
-main.o: main.cpp
-	${CC} -c ${CFLAGS} main.cpp -o main.o
+obj/main.o: main.cpp
+	${CC} -c ${CFLAGS} main.cpp -o obj/main.o
 
-Assembler.o: Assembler.cpp
-	${CC} -c ${CFLAGS} Assembler.cpp -o Assembler.o
+obj/Assembler.o: Assembler.cpp
+	${CC} -c ${CFLAGS} Assembler.cpp -o obj/Assembler.o
 
-Error.o: Error.cpp
-	${CC} -c ${CFLAGS} Error.cpp -o Error.o
+obj/Error.o: Error.cpp
+	${CC} -c ${CFLAGS} Error.cpp -o obj/Error.o
+
+obj/crc.o: crc.c
+	${CC} -c ${CFLAGS} crc.c -o obj/crc.o
 
 # DEBUG TARGET
 
@@ -32,20 +36,24 @@ tchip16_debug: ${D_OBJECTS}
 
 # DEBUG OBJECTS
 
-main.d.o: main.cpp
-	${CC} -c ${D_CFLAGS} main.cpp -o main.d.o
+obj/main.d.o: main.cpp
+	${CC} -c ${D_CFLAGS} main.cpp -o obj/main.d.o
 
-Assembler.d.o: Assembler.cpp
-	${CC} -c ${D_CFLAGS} Assembler.cpp -o Assembler.d.o
+obj/Assembler.d.o: Assembler.cpp
+	${CC} -c ${D_CFLAGS} Assembler.cpp -o obj/Assembler.d.o
 
-Error.d.o: Error.cpp
-	${CC} -c ${D_CFLAGS} Error.cpp -o Error.d.o
+obj/Error.d.o: Error.cpp
+	${CC} -c ${D_CFLAGS} Error.cpp -o obj/Error.d.o
 
+obj/crc.d.o: crc.c
+	${CC} -c ${D_CFLAGS} crc.c -o obj/crc.d.o
+
+#####################################################################
 # ALL TARGETS
 
-all: tchip16 tchip16_debug
+all: tchip16 tchip16_debug 
 
 # CLEAN TARGET
 
 clean:
-	-@rm *.o 2> /dev/null || true
+	-@rm obj/*.o 2> /dev/null || true

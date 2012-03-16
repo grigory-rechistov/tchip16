@@ -3,7 +3,7 @@
 
 http://code.google.com/p/tchip16
 ------------------------------------------------------------------------------------
-CHANGELOG:	V 1.3.4
+CHANGELOG:	V 1.4.0
 ------------------------------------------------------------------------------------
 
 - see commit comments on project homepage.
@@ -12,10 +12,15 @@ CHANGELOG:	V 1.3.4
 USAGE: 
 ------------------------------------------------------------------------------------
 
-LINUX:		./tchip16 <source> [-o dest][-v][-z][-a][-m][-h]
-WINDOWS:	tchip16.exe <source> [-o dest][-v][-z][-a][-m][-h]
+LINUX:      ./tchip16 <source> [-o dest][-v|--verbose][-z|--zero][-r|--raw]
+                               [-a|--align][-m|--mmap]
+            ./tchip16          [-h|--help][--version]
+WINDOWS:  tchip16.exe <source> [-o dest][-v|--verbose][-z|--zero][-r|--raw]
+                               [-a|--align][-m|--mmap]
+          tchip16.exe          [-h|--help][--version]
 
-Run tchip16 with the -h ("help") flag for a description of how they affect your program.
+Run tchip16 with the --help or -h flag for a description of how they affect your
+program.
 
 ------------------------------------------------------------------------------------
 SYNTAX:
@@ -23,6 +28,8 @@ SYNTAX:
 
 tchip16 accepts standard assembly syntax. Here's an example:
 
+    start       label2
+    version     1.0
 	constant1	equ 0x1000
 	constant2	equ $-string
 	lucky		equ 7
@@ -49,6 +56,13 @@ DIRECTIVES
 ------------------------------------------------------------------------------------
 
 tchip16 also features some directives to make your life easier:
+
+# START -- start val
+Specify the initial value of the PC.
+
+# VERSION -- version M.m
+Specify the version of the spec used in the program (default is 1.1).
+M = major, m = minor 
 
 # EQU -- name equ val
 Allows you to define a constant (name) for use in instructions.

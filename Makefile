@@ -1,8 +1,8 @@
 # VARIABLES
 
 CC = g++
-CFLAGS = -O2
-D_CFLAGS = -g -D _DEBUG
+CFLAGS = -Wall -Os 
+D_CFLAGS = -Wall -D _DEBUG
 LDFLAGS = -lm
 OBJECTS = obj/main.o obj/Assembler.o obj/Error.o obj/crc.o
 D_OBJECTS = obj/main.d.o obj/Assembler.d.o obj/Error.d.o obj/crc.d.o

@@ -23,6 +23,8 @@
 
 void helpOut();
 
+const char* tchip16_ver = "tchip16 1.4.0 -- a chip16 assembler\n";
+
 int main(int argc, char* argv[]) {
 
 	Assembler* tc16 = new Assembler();
@@ -60,10 +62,6 @@ int main(int argc, char* argv[]) {
 					tc16->putMmap();
                 else if(arg == "-r" || arg == "-R" || arg == "--raw")
                     tc16->noHeader();
-				else if(arg == "-h" || arg == "-H" || arg == "--help") {
-					helpOut();
-					return 0;
-				}
 				else
 					Error err(ERR_CMD_UNKNOWN);
 			}
@@ -73,12 +71,17 @@ int main(int argc, char* argv[]) {
 	}
 	// Set the input file
 	if(argc > 1) {
-		if(argv[1][0] == '-' && argv[1][1] == 'h' || argv[1][1] == 'H') {
+        std::string arg(argv[1]);
+		if(arg == "-h" || arg == "H" || arg == "--help") {
 			// No need to output or how debug info, so return from here
-            tc16->useVerbose();     // Output the version
-			helpOut();
+            std::cout << tchip16_ver;
+            helpOut();
 			return 0;
 		}
+        else if(arg == "--version") {
+            std::cout << tchip16_ver;
+            return 0;
+        }
 	}
 	else
 		Error err(ERR_NO_INPUT);
@@ -106,30 +109,39 @@ int main(int argc, char* argv[]) {
 }
 
 void helpOut() {
-	std::cout << "Usage: tchip16 <source> [-o dest][-v][-z][-a][-m][-h]\n\n"
+	std::cout << 
+        "Usage: tchip16 <source> [-o dest][-v|--verbose][-z|--zero][-r|--raw]\n"
+        "                        [-a|--align][-m|--mmap][-h|--help]\n\n"
 		"    source: the input source filename\n"
-		"    -v: switch to verbose output (default is silent)\n"
-		"    -o: name the output file to dest\n"
-		"    -z: if assembled code < 64K, zero rest up to 64K\n"
-		"    -a: align labels to 4-byte boundaries\n"
-		"    -m: output mmap.txt which displays the address of each label\n"
-		"    -h: displays help text\n\n";
+		"    -o dest: name the output file to dest\n"
+		"    -v, --verbose: switch to verbose output (default is silent)\n"
+		"    -z, --zero: if assembled code < 64K, zero rest up to 64K\n"
+        "    -r, --raw: do not output header, only raw chip16 ROM\n"
+		"    -a, --align: align labels to 4-byte boundaries\n"
+		"    -m, --mmap: output mmap.txt which displays the address of each label\n"
+		"    -h, --help: displays this help text\n"
+        "    --version: displays the version number\n\n";
 
-	std::cout << "Directives:\n"
-		"    include <file> :\n"
+	std::cout << 
+        "Directives:\n"
+        "    start <addr>:\n"
+        "        Set the initial value of the PC to addr in the header\n\n"
+        "    version <M.m>:\n"
+        "        Set the version of the spec used by the ROM, in the header\n\n"
+		"    include <file>:\n"
 		"        File is included for use in current file\n"
 		"        Files may only be included once in the project\n\n"
-		"    importbin <file> <offset> <length> <label> :\n"
+		"    importbin <file> <offset> <length> <label>:\n"
 		"        File is read from (offset) to (offset+length), stored at label\n\n"
-		"    <name> equ <value> :\n" 
+		"    <name> equ <value>:\n" 
 		"        All occurrences of name replaced with value\n\n"
-		"    db <val1> [...] :\n"
+		"    db <val1> [...]:\n"
 		"        Stores bytes val1 - ... in the file at this position\n"
 		"        Alignment is affected by -a flag\n\n"
-        "    dw <val1> [...] : \n"
+        "    dw <val1> [...]:\n"
         "        Stores words val1 - ... in the file at this position (little-endian)\n"
         "        Alignment is affected by -a flag\n\n"
-		"    db <str> :\n" 
+		"    db <str>:\n" 
 		"        Stores str (ASCII string) at this position\n\n";
 
 	std::cout << "Key: <> = mandatory, [] = optional\n";

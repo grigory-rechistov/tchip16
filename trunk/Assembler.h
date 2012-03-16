@@ -120,7 +120,7 @@ private:
 	bool writeMmap;
     bool writeHeader;
     // In-file modifiers
-    int start;
+    u16 start;
     double version;
 };
 

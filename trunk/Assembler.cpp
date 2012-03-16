@@ -7,7 +7,6 @@
 */
 
 #include <iostream>
-#include <iomanip>
 #include <fstream>
 #include <sstream>
 #include <algorithm>
@@ -16,6 +15,8 @@
 #include "Assembler.h"
 #include "RomHeader.h"
 #include "crc.h"
+
+extern const char* tchip16_ver;
 
 Assembler::Assembler() {
 	// Initialize
@@ -121,14 +122,6 @@ void Assembler::tokenize(const char* fn) {
 				// Add to map
 				consts[toks[0]] = atoi_t(toks[2]);
 			}
-            else if(toks[0] == "start") {
-                if(toks.size() == 1)
-                    Error err(ERR_OP_ARGS,f,lineNbAlt,std::string("start"));
-                else if(toks.size() > 2)
-                    Error err(ERR_TOO_MANY,f,lineNbAlt,std::string("start"));
-                start = atoi_t(toks[1]);
-                // TODO: Handle non-numeric (lookup label) cases
-            }
             else if(toks[0] == "version") {
                 if(toks.size() == 1)
                     Error err(ERR_OP_ARGS,f,lineNbAlt,std::string("start"));
@@ -139,7 +132,7 @@ void Assembler::tokenize(const char* fn) {
             }
 			else {
 				if(toks[0].size() > 1 &&
-				   toks[0][0] == ':' || toks[0][toks[0].size()-1] == ':') {
+				   ((toks[0][0] == ':') || (toks[0][toks[0].size()-1] == ':'))) {
 					   std::string label;
 					   if(toks[0][0] == ':')
 						   label = toks[0].substr(1,toks[0].size()-1);
@@ -159,9 +152,10 @@ void Assembler::tokenize(const char* fn) {
 					std::transform(toks[0].begin(),toks[0].end(),toks[0].begin(),::tolower);
 					// If the mnemonic uses a conditional type, fix it
 					if(toks[0].size() > 1 &&
-						(toks[0][0] == 'j' && (toks[0] == "jmz" || toks[0][1] != 'm')) ||
-						(toks[0][0] == 'c' && toks[0] != "call" 
-							&& toks[0] != "cls" && toks[0] != "cmpi" && toks[0] != "cmp")) {
+						((toks[0][0] == 'j' && (toks[0] == "jmz" || toks[0][1] != 'm')) ||
+						((toks[0][0] == 'c') && (toks[0] != "call") && 
+					    (toks[0] != "cls") && (toks[0] != "cmpi") && 
+                        (toks[0] != "cmp")))) {
 							toks.insert(toks.begin()+1,toks[0].substr(1));
 							toks[0] = toks[0].substr(0,1);
 							toks[0].append("x");
@@ -221,7 +215,7 @@ void Assembler::outputFile() {
 	for(lineNb=0; lineNb<tokens.size(); ++lineNb) {
 		u8 opcode = opMap[tokens[lineNb][0]];
 		u16 imm;
-		u8 n, n1, n2;
+		u8 n = 0, n1 = 0, n2 = 0;
 		switch(opcode) {
 		case NOP: case CLS: case VBLNK: case SND0: case PUSHALL: case POPALL: 
 		case PUSHF: case POPF: case RET:
@@ -433,6 +427,19 @@ void Assembler::outputFile() {
 			db(buffer,tokens[lineNb][1]);
 			break;
 					 }
+        case START: {
+            if(tokens[lineNb].size() == 1)
+                Error err(ERR_OP_ARGS,files[lineNb],lines[lineNb],tokens[lineNb][0]);
+            else if(tokens[lineNb].size() > 2)
+                Error err(ERR_TOO_MANY,files[lineNb],lines[lineNb],tokens[lineNb][0]);
+            // Resolve
+            if(consts.find(tokens[lineNb][1]) != consts.end()) 
+                start = consts[tokens[lineNb][1]];
+            else
+                start = atoi_t(tokens[lineNb][1]);
+            break;
+            }
+
 		default:
 			Error err(ERR_OP_UNKNOWN,files[lineNb],lines[lineNb],tokens[lineNb][0]);
 			break;
@@ -506,10 +513,14 @@ void Assembler::outputFile() {
 			revConsts[it->second] = it->first;
 		std::map<int,std::string>::iterator itt;
 		for(itt = revConsts.begin(); itt != revConsts.end(); ++itt) {
-			if(std::find(labelNames.begin(),labelNames.end(),itt->second) != labelNames.end())
-				mmap << std::hex << " 0x" << std::setw(4) 
-                     << std::setfill('0') << itt->first 
-					 << " : "  << itt->second << "\n";
+			if(std::find(labelNames.begin(),labelNames.end(),itt->second) !=
+                    labelNames.end()) {
+				mmap << std::hex << " 0x";
+                char of = mmap.fill('0');
+                mmap.width(4); 
+                mmap << itt->first << " : "  << itt->second << "\n";
+                mmap.fill(of);
+            }
 		}
 		mmap << "\n---------------------\n";
 		mmap.close();
@@ -521,7 +532,7 @@ void Assembler::outputFile() {
 void Assembler::useVerbose() {
 	verbose = true;
 	// Say hello then!
-	std::cout	<< "tchip16 1.4.0 -- a chip16 assembler\n";
+	std::cout << tchip16_ver;
 }
 
 bool Assembler::isVerbose() {
@@ -576,13 +587,13 @@ void Assembler::debugOut() {
 	std::cout << "\nConsts mapping:\n";
 	std::map<std::string,int>::iterator it;
 	for(it = consts.begin(); it != consts.end(); it++) {
-		std::cout << "    " << std::setw(15) << std::left << it->first;
+		std::cout << "    " << std::left << it->first;
 		std::cout << std::internal << " : " << it->second;
 		if(std::find(labelNames.begin(),labelNames.end(),it->first) != labelNames.end())
 			std::cout << std::right << " (label)";
 		std::cout << std::endl;
 	}
-	std::cout << "\n--\n\n";
+	std::cout << "\n";
 }
 
 // Methods that write instructions to disk 
@@ -876,6 +887,7 @@ void Assembler::initMaps() {
 	opMap["db_n"] = DB;
 	opMap["db_str"] = DB_STR;
     opMap["dw"] = DW;
+    opMap["start"] = START;
 	// Register mapping
 	regMap["r0"] = 0x0; regMap["R0"] = 0x0;
 	regMap["r1"] = 0x1; regMap["R1"] = 0x1;

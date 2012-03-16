@@ -27,13 +27,16 @@ Assembler::Assembler() {
 	zeroFill = false;
 	alignLabels = false;
 	writeMmap = false;
+    writeHeader = true;
 	outputFP = "output.c16";
     start = 0;
-    version = 1.0f;
+    version = 1.1f;
+    curB = 0;
+    buffer = new u8[MEM_SIZE];
 }
 
 Assembler::~Assembler() {
-
+    delete buffer;
 }
 
 void Assembler::setOutputFile(const char* fn) {
@@ -214,23 +217,6 @@ void Assembler::tokenize(const char* fn) {
 void Assembler::outputFile() {
 	if(verbose)
 		std::cout << "Output code... ";
-	std::ofstream out(outputFP.c_str(),std::ios::out|std::ios::binary);
-	if(!out.is_open())
-		Error err(ERR_IO,outputFP,0,std::string("All"));
-    // Output header
-    u32 ver = 0; // TODO: Extract fractional and integer parts
-    ch16_header header;
-    header.magic = 0x36314843;
-    header.reserved = 0x00;
-    header.spec_ver = ver;
-    header.rom_size = totalBytes;
-    // Major problem... can't do the CRC without a data buffer, which
-    // is not precomputed. Rewrite required :(
-    crc_t c = crc_init();
-    //c = crc_update(c,
-    header.crc32_sum = 0;
-    
-    // TODO: Write the header to the file
 	// Output code
 	for(lineNb=0; lineNb<tokens.size(); ++lineNb) {
 		u8 opcode = opMap[tokens[lineNb][0]];
@@ -241,7 +227,7 @@ void Assembler::outputFile() {
 		case PUSHF: case POPF: case RET:
 			if(tokens[lineNb].size() > 1)
 				Error err(ERR_OP_ARGS,files[lineNb],lines[lineNb],tokens[lineNb][0]);
-			op_void(out,opcode);
+			op_void(buffer,opcode);
 			break;
 		case JMP_I: case JMC: case CALL_I: 
 		case SPR: case SND1: case SND2: case SND3: case PAL_I: {
@@ -255,7 +241,7 @@ void Assembler::outputFile() {
 			}
 			else
 				imm = atoi_t(tokens[lineNb][1]);
-			op_imm(out,opcode,imm);
+			op_imm(buffer,opcode,imm);
 			break;
 		}
 		case Jx: case Cx:
@@ -274,7 +260,7 @@ void Assembler::outputFile() {
 			}
 			else
 				imm = atoi_t(tokens[lineNb][2]);
-			op_n_imm(out,opcode,n,imm);
+			op_n_imm(buffer,opcode,n,imm);
 			break;
         case SNG:
             if(tokens[lineNb].size() != 3)
@@ -295,7 +281,7 @@ void Assembler::outputFile() {
 			}
 			else
 				imm = (u16)atoi_t(tokens[lineNb][2]);
-			op_n_imm(out,opcode,n,imm);
+			op_n_imm(buffer,opcode,n,imm);
 			break;
         case BGC:
 			if(tokens[lineNb].size() > 2 || tokens[lineNb].size() < 2)
@@ -308,7 +294,7 @@ void Assembler::outputFile() {
 			}
 			else
 				n = (u8)atoi_t(tokens[lineNb][1]);
-			op_n(out,opcode,n);
+			op_n(buffer,opcode,n);
 			break;
 		case FLIP:
 			if(tokens[lineNb].size() > 3 || tokens[lineNb].size() < 3)
@@ -329,14 +315,14 @@ void Assembler::outputFile() {
 			}
 			else
 				n2 = (u8)atoi_t(tokens[lineNb][2]);
-			op_n_n(out,opcode,n1,n2);
+			op_n_n(buffer,opcode,n1,n2);
 			break;
 		case CALL_R: case JMP_R: case PUSH: case POP: case PAL_R:
 			if(tokens[lineNb].size() > 2 || tokens[lineNb].size() < 2)
 				Error err(ERR_OP_ARGS,files[lineNb],lines[lineNb],tokens[lineNb][0]);
             if(regMap.find(tokens[lineNb][1]) == regMap.end())
                 Error err(ERR_OP_ARGS,files[lineNb],lines[lineNb],tokens[lineNb][0]);
-			op_r(out,opcode,regMap[tokens[lineNb][1]]);
+			op_r(buffer,opcode,regMap[tokens[lineNb][1]]);
 			break;
 		case SNP: case RND: case LDI_R: case LDI_SP: case LDM_I: case STM_I: case ADDI: case SUBI: 
 		case MULI: case DIVI: case CMPI: case ANDI: case TSTI: case ORI: case XORI:
@@ -352,7 +338,7 @@ void Assembler::outputFile() {
 				imm = atoi_t(tokens[lineNb][2]);
             if(regMap.find(tokens[lineNb][1]) == regMap.end())
                 Error err(ERR_OP_ARGS,files[lineNb],lines[lineNb],tokens[lineNb][0]);
-			op_r_imm(out,opcode,(u8)regMap[tokens[lineNb][1]],imm);
+			op_r_imm(buffer,opcode,(u8)regMap[tokens[lineNb][1]],imm);
 			break;
 		case SHL_N: case SHR_N: case SAR_N:
 			if(tokens[lineNb].size() > 3 || tokens[lineNb].size() < 3)
@@ -367,7 +353,7 @@ void Assembler::outputFile() {
 				n = (u8)atoi_t(tokens[lineNb][2]);
             if(regMap.find(tokens[lineNb][1]) == regMap.end())
                 Error err(ERR_OP_ARGS,files[lineNb],lines[lineNb],tokens[lineNb][0]);
-			op_r_n(out,opcode,(u8)regMap[tokens[lineNb][1]],n);
+			op_r_n(buffer,opcode,(u8)regMap[tokens[lineNb][1]],n);
 			break;
 		case DRW_I: case JME:
 			if(tokens[lineNb].size() > 4 || tokens[lineNb].size() < 4)
@@ -383,7 +369,7 @@ void Assembler::outputFile() {
             if(regMap.find(tokens[lineNb][1]) == regMap.end() ||
                     regMap.find(tokens[lineNb][2]) == regMap.end())
                 Error err(ERR_OP_ARGS,files[lineNb],lines[lineNb],tokens[lineNb][0]);
-			op_r_r_imm(out,opcode,(u8)regMap[tokens[lineNb][1]],
+			op_r_r_imm(buffer,opcode,(u8)regMap[tokens[lineNb][1]],
 				(u8)regMap[tokens[lineNb][2]],imm);
 			break;
 		case ADD_R2: case SUB_R2: case MUL_R2: case DIV_R2: case AND_R2: case OR_R2:
@@ -391,7 +377,7 @@ void Assembler::outputFile() {
 		case STM_R: case CMP: case TST:
 			if(tokens[lineNb].size() > 3 || tokens[lineNb].size() < 3)
 				Error err(ERR_OP_ARGS,files[lineNb],lines[lineNb],tokens[lineNb][0]);
-			op_r_r(out,opcode,(u8)regMap[tokens[lineNb][1]],(u8)regMap[tokens[lineNb][2]]);
+			op_r_r(buffer,opcode,(u8)regMap[tokens[lineNb][1]],(u8)regMap[tokens[lineNb][2]]);
 			break;
 		case ADD_R3: case SUB_R3: case MUL_R3: case DIV_R3: case AND_R3: case OR_R3:
 		case XOR_R3: case DRW_R:
@@ -401,7 +387,7 @@ void Assembler::outputFile() {
                     regMap.find(tokens[lineNb][2]) == regMap.end() ||
                     regMap.find(tokens[lineNb][3]) == regMap.end())
                 Error err(ERR_OP_ARGS,files[lineNb],lines[lineNb],tokens[lineNb][0]);
-			op_r_r_r(out,opcode,(u8)regMap[tokens[lineNb][1]],
+			op_r_r_r(buffer,opcode,(u8)regMap[tokens[lineNb][1]],
 				(u8)regMap[tokens[lineNb][2]],(u8)regMap[tokens[lineNb][3]]);
 			break;
 		case DB: {
@@ -419,7 +405,7 @@ void Assembler::outputFile() {
 					Error err(ERR_NUM_OVERFLOW,files[lineNb],lines[lineNb],tokens[lineNb][0]);
 				vals.push_back((u8)val);
 			}
-			db(out,vals);
+			db(buffer,vals);
 			break;
 				}
         case DW: {
@@ -435,7 +421,7 @@ void Assembler::outputFile() {
                     val = atoi_t(tokens[lineNb][j]);
 				vals.push_back((u16)val);
 			}
-			dw(out,vals);
+			dw(buffer,vals);
 			break;
                  }
 		case DB_STR: {
@@ -444,7 +430,7 @@ void Assembler::outputFile() {
 			tokens[lineNb][1] = tokens[lineNb][1].substr(1,tokens[lineNb][1].length()-2);
 			/*if(tokens[lineNb][1] == "")
 				Error err(ERR_STR_EMPTY);*/
-			db(out,tokens[lineNb][1]);
+			db(buffer,tokens[lineNb][1]);
 			break;
 					 }
 		default:
@@ -458,30 +444,54 @@ void Assembler::outputFile() {
 	// Output imported binaries
 	for(unsigned i=0; i<imports.size(); ++i) {
 		int size = atoi_t(imports[i][2]);
-		char* buf = new char[size]();
+		u8* buf = buffer + curB;
 		std::ifstream imp(imports[i][0].c_str(),std::ios::in|std::ios::binary);
 		if(!imp.is_open())
 			Error err(ERR_IO,std::string(""),0,imports[i][0]);
 		imp.seekg(atoi_t(imports[i][1]));
-		imp.read(buf,size);
+		imp.read((char*)buf,size);
 		imp.close();
-		out.write(buf,size);
+        curB += size;
 	}
 	if(verbose)
 		std::cout << "OK\n";
 	// If -z, fill with 0's up to 64K
 	if(zeroFill) {
+        u8* buf = buffer + curB;
 		if(verbose)
 			std::cout << "Zeroing memory up to 64K... ";
-		char* zero = new char[0x10000-totalBytes];
 		for(int i=0; i<0x10000-totalBytes; ++i)
-			zero[i] = 0;
-		out.write(zero,0x10000-totalBytes);
+			buf[i] = 0;
 		if(verbose)
 			std::cout << "OK\n";
 	}
+	
+    std::ofstream out(outputFP.c_str(),std::ios::out|std::ios::binary);
+	if(!out.is_open())
+		Error err(ERR_IO,outputFP,0,std::string("All"));
+    
+    // Output header
+    if(writeHeader) {
+        double frac = modf(version,&version);
+        u8 ver =  ((u8)(version) << 4) | (u8)(frac*10);
+        ch16_header header;
+        header.magic = 0x36314843;
+        header.reserved = 0x00;
+        header.spec_ver = ver;
+        header.rom_size = totalBytes;
+        crc_t c = crc_init();
+        c = crc_update(c,buffer,curB);
+        c = crc_finalize(c);
+        header.start_addr = start;
+        header.crc32_sum = c;
+        
+        out.write((char*)&header,sizeof(ch16_header));
+    }
+    
+    out.write((char*)buffer,curB);
 	out.close();
-	// If -m, output mmap.txt
+	
+    // If -m, output mmap.txt
 	if(writeMmap) {
 		if(verbose)
 			std::cout << "Output mmap.txt... ";
@@ -511,7 +521,7 @@ void Assembler::outputFile() {
 void Assembler::useVerbose() {
 	verbose = true;
 	// Say hello then!
-	std::cout	<< "tchip16 1.3.4 -- a chip16 assembler\n";
+	std::cout	<< "tchip16 1.4.0 -- a chip16 assembler\n";
 }
 
 bool Assembler::isVerbose() {
@@ -528,6 +538,10 @@ void Assembler::useAlign() {
 
 void Assembler::putMmap() {
 	writeMmap = true;
+}
+
+void Assembler::noHeader() {
+    writeHeader = false;
 }
 
 void Assembler::debugOut() {
@@ -573,41 +587,41 @@ void Assembler::debugOut() {
 
 // Methods that write instructions to disk 
 
-inline void Assembler::op_void(std::ofstream& bin, OPCODE op) {
-	char out[4];
+inline void Assembler::op_void(u8* buf, OPCODE op) {
+	u8* out = buf + curB;
 	out[0] = op;
 	out[1] = 0; out[2] = 0; out[3] = 0;
-	bin.write(out,4);
+    curB += 4;
 }
 
-inline void Assembler::op_imm(std::ofstream& bin, OPCODE op, u16 imm) {
-	char out[4];
+inline void Assembler::op_imm(u8* buf, OPCODE op, u16 imm) {
+	u8* out = buf + curB;
 	out[0] = op;
 	out[1] = 0;
 	out[2] = imm & 0xFF;
 	out[3] = imm >> 8;
-	bin.write(out,4);
+	curB += 4;
 }
 
-inline void Assembler::op_n_imm(std::ofstream& bin, OPCODE op, u8 n, u16 imm) {
-	char out[4];
+inline void Assembler::op_n_imm(u8* buf, OPCODE op, u8 n, u16 imm) {
+	u8* out = buf + curB;
 	out[0] = op;
 	out[1] = n;	
 	out[2] = imm & 0xFF;
 	out[3] = imm >> 8;
-	bin.write(out,4);
+	curB += 4;
 }
 
-inline void Assembler::op_n(std::ofstream& bin, OPCODE op, u8 n) {
-	char out[4];
+inline void Assembler::op_n(u8* buf, OPCODE op, u8 n) {
+	u8* out = buf + curB;
 	out[0] = op;
 	out[1] = 0;
 	out[2] = n; out[3] = 0;
-	bin.write(out,4);
+	curB += 4;
 }
 
-inline void Assembler::op_n_n(std::ofstream& bin, OPCODE op,u8 n1,u8 n2) {
-	char out[4];
+inline void Assembler::op_n_n(u8* buf, OPCODE op,u8 n1,u8 n2) {
+	u8* out = buf + curB;
 	out[0] = op;
 	out[1] = 0; out[2] = 0;
 	// Do some error checking
@@ -630,94 +644,103 @@ inline void Assembler::op_n_n(std::ofstream& bin, OPCODE op,u8 n1,u8 n2) {
 	else
 		Error err(ERR_OP_ARGS,files[lineNb],lines[lineNb],std::string("FLIP"));
 
-	bin.write(out,4);
+	curB += 4;
 }
 
-inline void Assembler::op_r(std::ofstream& bin, OPCODE op, u8 r) {
-	char out[4];
+inline void Assembler::op_r(u8* buf, OPCODE op, u8 r) {
+	u8* out = buf + curB;
 	out[0] = op;
 	out[1] = r;
 	out[2] = 0; out[3] = 0;
-	bin.write(out,4);
+	curB += 4;
 }
 
-inline void Assembler::op_r_imm(std::ofstream& bin, OPCODE op,u8 r,u16 imm) {
-	char out[4];
+inline void Assembler::op_r_imm(u8* buf, OPCODE op,u8 r,u16 imm) {
+	u8* out = buf + curB;
 	out[0] = op;
 	out[1] = r;
 	out[2] = imm & 0xFF;
 	out[3] = imm >> 8;
-	bin.write(out,4);
+	curB += 4;
 }
 
-inline void Assembler::op_r_n(std::ofstream& bin, OPCODE op,u8 r,u8 n) {
-	char out[4];
+inline void Assembler::op_r_n(u8* buf, OPCODE op,u8 r,u8 n) {
+	u8* out = buf + curB;
 	out[0] = op;
 	out[1] = r;
 	out[2] = n; out[3] = 0;
-	bin.write(out,4);
+	curB += 4;
 }
 
-inline void Assembler::op_r_r(std::ofstream& bin, OPCODE op, u8 r1, u8 r2) {
-	char out[4];
+inline void Assembler::op_r_r(u8* buf, OPCODE op, u8 r1, u8 r2) {
+	u8* out = buf + curB;
 	out[0] = op;
 	out[1] = (r2 << 4) | r1;
 	out[2] = 0; out[3] = 0;
-	bin.write(out,4);
+	curB += 4;
 }
 
-inline void Assembler::op_r_r_imm(std::ofstream& bin, OPCODE op, u8 r1,u8 r2,u16 imm) {
-	char out[4];
+inline void Assembler::op_r_r_imm(u8* buf, OPCODE op, u8 r1,u8 r2,u16 imm) {
+	u8* out = buf + curB;
 	out[0] = op;
 	out[1] = (r2 << 4) | r1;
 	out[2] = imm & 0xFF;
 	out[3] = imm >> 8;
-	bin.write(out,4);
+	curB += 4;
 }
 
-inline void Assembler::op_r_r_r(std::ofstream& bin, OPCODE op, u8 r1,u8 r2,u8 r3) {
-	char out[4];
+inline void Assembler::op_r_r_r(u8* buf, OPCODE op, u8 r1,u8 r2,u8 r3) {
+	u8* out = buf + curB;
 	out[0] = op;
 	out[1] = (r2 << 4) | r1;
 	out[2] = r3;
 	out[3] = 0;
-	bin.write(out,4);
+	curB += 4;
 }
 
-void Assembler::db(std::ofstream& bin, std::vector<u8>& bytes) {
+void Assembler::db(u8* buf, std::vector<u8>& bytes) {
+    u8* out = buf + curB;
 	for(unsigned i=0; i<bytes.size(); ++i) {
-		char out = bytes[i];
-		bin.write(&out,1);
+		(*out++) = bytes[i];
 	}
+    curB += bytes.size();
 	if(alignLabels && (bytes.size() % 4) != 0) {
 		char pad = 0x00;
-		for(unsigned i=0; i<4-(bytes.size()%4); ++i)
-			bin.write(&pad,1);
+		for(unsigned i=0; i<4-(bytes.size()%4); ++i) {
+			(*out++) = pad;
+            ++curB;
+        }
 	}
 }
 
-void Assembler::dw(std::ofstream& bin, std::vector<u16>& words) {
+void Assembler::dw(u8* buf, std::vector<u16>& words) {
+    u16* out = (u16*)((u8*)(buf + curB));
 	for(unsigned i=0; i<words.size(); ++i) {
-		char out[2] = {(char)(words[i] & 0xFF),
-                       (char)(words[i] >> 8)};
-		bin.write(out,2);
+		(*out++) = words[i];
 	}
+    curB += words.size()*2;
+    u8* out_ = (u8*)out;
 	if(alignLabels && (words.size() % 4) != 0) {
 		char pad = 0x00;
-		for(unsigned i=0; i<4-(words.size()%4); ++i)
-			bin.write(&pad,1);
+		for(unsigned i=0; i<4-(words.size()%4); ++i) {
+			(*out_++) = pad;
+            ++curB;
+        }
 	}
 }
 
-void Assembler::db(std::ofstream& bin, std::string& str) {
+void Assembler::db(u8* buf, std::string& str) {
+    u8* out = buf + curB;
 	for(unsigned i=0; i<str.size(); ++i) {
-		char out = str[i];
-		bin.write(&out,1);
+		(*out++) = str[i];
 	}
+    curB += str.size();
 	if(alignLabels && (str.size() % 4) != 0) {
 		char pad = 0x00;
-		for(unsigned i=0; i<4-(str.size()%4); ++i)
-			bin.write(&pad,1);
+		for(unsigned i=0; i<4-(str.size()%4); ++i) {
+			(*out++) = pad;
+            ++curB;
+        }
 	}
 }
 

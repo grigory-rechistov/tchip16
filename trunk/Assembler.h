@@ -51,6 +51,7 @@ public:
 	void useZeroFill();
 	void useAlign();
 	void putMmap();
+    void noHeader();
 	// Debug use
 	void debugOut();
 
@@ -61,33 +62,37 @@ private:
 	void initMaps();
 
 	// nop, cls, vblnk, ret, snd0, pushall, popall
-	void op_void(std::ofstream&,OPCODE);				
+	void op_void(u8*,OPCODE);				
 	// jmp, jmc, jmz, call, spr, snd[1-3], pal
-	void op_imm(std::ofstream&,OPCODE,u16);	
+	void op_imm(u8*,OPCODE,u16);	
 	// jx, cx, snp, sng
-	void op_n_imm(std::ofstream&,OPCODE,u8,u16);
+	void op_n_imm(u8*,OPCODE,u8,u16);
 	// bgc
-	void op_n(std::ofstream&,OPCODE,u8);				
+	void op_n(u8*,OPCODE,u8);				
 	// flip
-	void op_n_n(std::ofstream&,OPCODE,u8,u8);
+	void op_n_n(u8*,OPCODE,u8,u8);
 	// jmp_r, call_r, pal_r
-	void op_r(std::ofstream&,OPCODE,u8);
+	void op_r(u8*,OPCODE,u8);
 	// rnd, ldi, ldm, stm, addi, subi, muli, divi, cmpi, andi, tsti, ori, xori
-	void op_r_imm(std::ofstream&,OPCODE,u8,u16);
+	void op_r_imm(u8*,OPCODE,u8,u16);
 	// shl_n, shr_n, sar_n
-	void op_r_n(std::ofstream&,OPCODE,u8,u8);
+	void op_r_n(u8*,OPCODE,u8,u8);
 	// drw, jme
-	void op_r_r_imm(std::ofstream&,OPCODE,u8,u8,u16);
+	void op_r_r_imm(u8*,OPCODE,u8,u8,u16);
 	// add_r2, sub_r2, mul_r2, div_r2, and_r2, or_r2, xor_r2, shl_r, shr_r, sar_r
-	void op_r_r(std::ofstream&,OPCODE,u8,u8);
+	void op_r_r(u8*,OPCODE,u8,u8);
 	// add_r3, sub_r3, mul_r3, div_r3, cmp, and_r3, tst, or_r3, xor_r3
-	void op_r_r_r(std::ofstream&,OPCODE,u8,u8,u8);
+	void op_r_r_r(u8*,OPCODE,u8,u8,u8);
 
 	// Pseudo-instructions
-	void db(std::ofstream& bin, std::vector<u8>&);
-	void db(std::ofstream& bin, std::string&);
-    void dw(std::ofstream& bin, std::vector<u16>&);
+	void db(u8* bin, std::vector<u8>&);
+	void db(u8* bin, std::string&);
+    void dw(u8* bin, std::vector<u16>&);
 
+    // Output buffer
+    u8* buffer;
+    // Current byte position
+    u32 curB;
 	// Parsed source file
 	lineList tokens;
 	// Line numbers
@@ -113,9 +118,10 @@ private:
 	bool zeroFill;
 	bool alignLabels;
 	bool writeMmap;
+    bool writeHeader;
     // In-file modifiers
     int start;
-    float version;
+    double version;
 };
 
 #endif

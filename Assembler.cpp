@@ -485,7 +485,7 @@ void Assembler::outputFile() {
         header.magic = 0x36314843;
         header.reserved = 0x00;
         header.spec_ver = ver;
-        header.rom_size = totalBytes;
+        header.rom_size = curB;
         crc_t c = crc_init();
         c = crc_update(c,buffer,curB);
         c = crc_finalize(c);

@@ -210,7 +210,7 @@ void Assembler::tokenize(const char* fn) {
 
 void Assembler::outputFile() {
 	if(verbose)
-		std::cout << "Output code... ";
+		std::cout << "Output binary";
 	// Output code
 	for(lineNb=0; lineNb<tokens.size(); ++lineNb) {
 		u8 opcode = opMap[tokens[lineNb][0]];
@@ -466,11 +466,9 @@ void Assembler::outputFile() {
 	if(zeroFill) {
         u8* buf = buffer + curB;
 		if(verbose)
-			std::cout << "Zeroing memory up to 64K... ";
+			std::cout << "Zero memory up to 64K\n";
 		for(int i=0; i<0x10000-totalBytes; ++i)
 			buf[i] = 0;
-		if(verbose)
-			std::cout << "OK\n";
 	}
 	
     std::ofstream out(outputFP.c_str(),std::ios::out|std::ios::binary);
@@ -501,7 +499,7 @@ void Assembler::outputFile() {
     // If -m, output mmap.txt
 	if(writeMmap) {
 		if(verbose)
-			std::cout << "Output mmap.txt... ";
+			std::cout << "Output mmap.txt\n";
 		std::ofstream mmap("mmap.txt");
 		if(!mmap.is_open())
 			Error err(ERR_IO,std::string("All"),0,std::string("mmap.txt"));
@@ -524,8 +522,6 @@ void Assembler::outputFile() {
 		}
 		mmap << "\n---------------------\n";
 		mmap.close();
-		if(verbose)
-			std::cout << "OK\n";
 	}
 }
 

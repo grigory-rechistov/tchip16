@@ -759,6 +759,7 @@ u16 Assembler::atoi_t(std::string str)
 	if(str.size() == 0)
 		return 0;
 	std::transform(str.begin(),str.end(),str.begin(),::toupper);
+    u16 val = 0, mul = 1;
 	// If number is hexadecimal
 	// Notation: $NN, #NN, 0xNN, NNh
 	if(str.size() > 1 && (
@@ -776,34 +777,35 @@ u16 Assembler::atoi_t(std::string str)
 		// Number is bigger than 16-bit, not allowed
 		if(str.size() > 4)
 			Error err(ERR_NUM_OVERFLOW,files[lineNb],lines[lineNb],tokens[lineNb][0]);
-		u16 val = 0;
-		for(size_t i=0; i<str.size(); ++i) {
+		for(int i=str.size()-1; i>=0; --i) {
 			char c = str[i];
+            u16 v = 0;
 			if(c >= 0x30 && c <= 0x39)
-				val += (int)( pow(16.f,(int)(str.size() - i - 1)) ) * (c - 0x30);
+				v = (u16)(c - 0x30);
 			else if(c >= 0x41 && c <= 0x46)
-				val += (int)( pow(16.f,(int)(str.size() - i - 1)) ) * (c - 0x41 + 10);
+				v = (u16)(c - 0x30 - 7);
 			else 
 				Error err(ERR_NAN,files[lineNb],lines[lineNb],tokens[lineNb][0]);
+            val += mul * v;
+            mul *= 16;
 		}
 		return val;
 	}
 	// Otherwise, assume it's decimal
 	else {
-		u16 val = 0;
 		int start = 0;
-		if(str[0] == '-') {
+		if(str[0] == '-')
 			++start;
-		}
         // Number does not fit than 16-bits
         if(str.size() - start > 4)
             Error err(ERR_NUM_OVERFLOW,files[lineNb],lines[lineNb],tokens[lineNb][0]);
-		for(size_t i=start; i<str.size(); ++i) {
+		for(int i=str.size()-1; i>=start; --i) {
 			char c = str[i];
 			if(c >= 0x30 && c <= 0x39)
-				val += (int)( pow(10.f,(int)(str.size() - i - 1)) ) * (c - 0x30);
+				val += mul * (u16)(c - 0x30);
 			else
 				Error err(ERR_NAN,files[lineNb],lines[lineNb],str);
+            mul *= 10;
 		}
 		return start ? (~val+1) : val;
 	}

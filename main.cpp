@@ -41,6 +41,8 @@ int main(int argc, char* argv[]) {
 		}
 	}
 
+    bool validCmds = true;
+
 	// Parse the command line arguments
 	if(argc > 2) {
 		for(int i=1+nbFiles; i<argc; ++i) {
@@ -50,7 +52,7 @@ int main(int argc, char* argv[]) {
 					if(argc > i+1)
 						tc16->setOutputFile(argv[++i]);
 					else
-						Error err(ERR_CMD_NONE);
+						Error::error(ERR_CMD_NONE);
 				}
 				else if(arg == "-v" || arg == "-V" || arg == "--verbose")
 					tc16->useVerbose();
@@ -62,13 +64,21 @@ int main(int argc, char* argv[]) {
 					tc16->putMmap();
                 else if(arg == "-r" || arg == "-R" || arg == "--raw")
                     tc16->noHeader();
-				else
-					Error err(ERR_CMD_UNKNOWN);
+				else {
+					Error::error(ERR_CMD_UNKNOWN);
+                    validCmds = false;
+                }
 			}
-			else
-				Error err(ERR_CMD_UNKNOWN);
+			else {
+				Error::error(ERR_CMD_UNKNOWN);
+                validCmds = false;
+            }
 		}
 	}
+    
+    if(!validCmds)
+        return 1;
+
 	// Set the input file
 	if(argc > 1) {
         std::string arg(argv[1]);
@@ -81,8 +91,10 @@ int main(int argc, char* argv[]) {
             return 0;
         }
 	}
-	else
-		Error err(ERR_NO_INPUT);
+	else {
+		Error::error(ERR_NO_INPUT);
+        return 1;
+    }
 #ifdef _DEBUG
 	tc16->useVerbose();
 #endif

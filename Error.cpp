@@ -11,24 +11,23 @@
 
 #include "Error.h"
 
+bool Error::output = true;
 
-Error::Error(void)
+void Error::error(void)
 {
-	std::cout << "Undefined error\n";
+    std::cout << "error: undefined\n";
+    output = false;
 }
 
-Error::Error(ERROR code) {
+void Error::error(ERROR code) {
+    std::cout << "error: ";
 	print(code);
 }
 
-Error::Error(ERROR code, const std::string& fn, int lineNb, const std::string& str) {
+void Error::error(ERROR code, const std::string& fn, int lineNb, const std::string& str) {
 	std::cout << fn.c_str() << ":" << lineNb << ": "
-		      << "error: (" << str.c_str() << ") ";
+		      << "error: " << str.c_str() << ": ";
 	print(code);
-}
-
-Error::~Error(void)
-{
 }
 
 void Error::print(ERROR code) {
@@ -42,11 +41,11 @@ void Error::print(ERROR code) {
 		break;
 	case ERR_NO_INPUT:
 		std::cout	<< "No source file specified "
-					<< "(flag -h for help)\n";
+					<< "(option --help for help)\n";
 		break;
 	case ERR_CMD_UNKNOWN:
 		std::cout	<< "Unknown program argument "
-					<< "(use -h to see list)\n";
+					<< "(option --help to see list)\n";
 		break;
 	case ERR_OP_UNKNOWN:
 		std::cout << "Unknown opcode encountered\n";
@@ -83,12 +82,9 @@ void Error::print(ERROR code) {
 		std::cout	<< "Number overflow "
 					<< "(value is too large for datatype)\n";
 		break;
-	case ERR_STR_NOTENDED:
-		std::cout	<< "String not ended "
-					<< "(missing a \")\n";
-		break;
-	case ERR_STR_EMPTY:
-		std::cout	<< "Empty string is illegal\n";
+	case ERR_STR_INVALID:
+		std::cout	<< "Invalid string encountered "
+					<< "(maybe missing a '\"')\n";
 		break;
 	case ERR_STR_NOLABEL:
 		std::cout	<< "String has no label, cannot be referenced\n";
@@ -100,6 +96,5 @@ void Error::print(ERROR code) {
 #ifdef _DEBUG
 	WAIT;
 #endif
-	// Terminate assembler as we have encountered a fatal error
-	exit(1);
+    output = false;
 }

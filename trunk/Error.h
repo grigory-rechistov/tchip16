@@ -17,21 +17,21 @@ enum ERROR {
 	ERR_NONE, ERR_IO, ERR_CMD_NONE, ERR_NO_INPUT, ERR_CMD_UNKNOWN,  
 	ERR_OP_UNKNOWN, ERR_OP_ARGS, ERR_NUM_NONE, ERR_LABEL_REDEF,
 	ERR_CONST_REDEF, ERR_INC_CYCLE, ERR_INC_NONE, ERR_TOO_MANY, 
-	ERR_NAN, ERR_NUM_OVERFLOW, ERR_STR_NOTENDED, ERR_STR_EMPTY,
-	ERR_STR_NOLABEL
+	ERR_NAN, ERR_NUM_OVERFLOW, ERR_STR_INVALID, ERR_STR_NOLABEL
 };
 
 class Error
 {
 public:
-	Error(void);
+	static void print(ERROR);
+    
+    static void error(void);
 	// only error code
-	Error(ERROR);
+    static void error(ERROR);
 	// error code, filename, line number, object
-	Error(ERROR,const std::string&,int,const std::string&);
-	~Error(void);
-private:
-	void print(ERROR code);
+    static void error(ERROR,const std::string&,int,const std::string&);
+
+    static bool output;
 };
 
 #endif

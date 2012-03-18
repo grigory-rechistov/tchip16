@@ -56,4 +56,4 @@ all: tchip16 tchip16_debug
 # CLEAN TARGET
 
 clean:
-	-@rm obj/*.o 2> /dev/null || true
+	-@rm obj/*.o tchip16 tchip16_debug 2> /dev/null || true

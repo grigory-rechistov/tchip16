@@ -96,17 +96,19 @@ void Assembler::tokenize(const char* fn) {
         if(!toks.empty()) {
             if(toks[0] == "include") {
                 if(toks.size() == 1)
-                    Error::error(ERR_INC_NONE,f,lineNbAlt,std::string("include"));
+                    Error::error(ERR_INC_NONE,f,lineNbAlt,toks[0]);
                 else if(toks.size() > 2)
-                    Error::error(ERR_TOO_MANY,f,lineNbAlt,std::string("include"));
+                    Error::error(ERR_TOO_MANY,f,lineNbAlt,toks[0]);
                 else
                     tokenize(toks[1].c_str());
             }
             else if(toks[0] == "importbin") {
                 if(toks.size() < 5)
-                    Error::error(ERR_OP_ARGS,f,lineNbAlt,std::string("importbin"));
+                    Error::error(ERR_OP_ARGS,f,lineNbAlt,toks[0]);
                 else if(toks.size() > 5)
-                    Error::error(ERR_TOO_MANY,f,lineNbAlt,std::string("importbin"));
+                    Error::error(ERR_TOO_MANY,f,lineNbAlt,toks[0]);
+                else if(std::find(labelNames.begin(),labelNames.end(),toks[3]) != labelNames.end())
+                    Error::error(ERR_LABEL_REDEF,f,lineNbAlt,toks[3]);
                 else {
                     toks.erase(toks.begin(),toks.begin()+1);
                     imports.push_back(toks);
@@ -115,25 +117,28 @@ void Assembler::tokenize(const char* fn) {
             }
             else if(toks.size() > 1 && toks[1] == "equ") {
                 if(toks.size() < 3)
-                    Error::error(ERR_OP_ARGS,f,lineNbAlt,std::string("equ"));
+                    Error::error(ERR_OP_ARGS,f,lineNbAlt,toks[1]);
                 else if(toks.size() > 3)
-                    Error::error(ERR_TOO_MANY,f,lineNbAlt,std::string("equ"));
+                    Error::error(ERR_TOO_MANY,f,lineNbAlt,toks[1]);
+                else if(std::find(constNames.begin(),constNames.end(),toks[0]) != constNames.end())
+                    Error::error(ERR_CONST_REDEF,f,lineNbAlt,toks[0]);
                 else if(toks[2].size() > 2 && toks[2][0] == '$' && toks[2][1] == '-') {
-                    unresConsts[toks[0]] = 
+                    unresConsts[toks[0]] =
                         std::make_pair<int,std::string>(lineNbAlt,toks[2].substr(2,toks[2].size()-2));
-                    continue;    // F*****g fugly... these will all become methods, I swear!
                 }
                 else if(atoi_t(toks[2]) > 0xFFFF)
-                    Error::error(ERR_NUM_OVERFLOW,f,lineNbAlt,std::string("equ"));
-                else
+                    Error::error(ERR_NUM_OVERFLOW,f,lineNbAlt,toks[1]);
+                else {
                     // Add to map
                     consts[toks[0]] = atoi_t(toks[2]);
+                    constNames.push_back(toks[0]);
+                }
             }
             else if(toks[0] == "version") {
                 if(toks.size() == 1)
-                    Error::error(ERR_OP_ARGS,f,lineNbAlt,std::string("start"));
+                    Error::error(ERR_OP_ARGS,f,lineNbAlt,toks[0]);
                 else if(toks.size() > 2)
-                    Error::error(ERR_TOO_MANY,f,lineNbAlt,std::string("start"));
+                    Error::error(ERR_TOO_MANY,f,lineNbAlt,toks[0]);
                 else {
                     std::stringstream vss(toks[1]);
                     vss >> version;
@@ -148,10 +153,14 @@ void Assembler::tokenize(const char* fn) {
                        else
                            label = toks[0].substr(0,toks[0].size()-1);
                        int pad = alignLabels ? (totalBytes % 4 != 0 ? 4 - (totalBytes % 4) : 0) : 0;
-                       // Add to map
-                       consts[label] = totalBytes + pad;
-                       // Add to label list
-                       labelNames.push_back(label);
+                       if(consts.find(label) != consts.end())
+                           Error::error(ERR_LABEL_REDEF,f,lineNbAlt,label);
+                       else {
+                           // Add to map
+                           consts[label] = totalBytes + pad;
+                           // Add to label list
+                           labelNames.push_back(label);
+                       }
                        // Remove token
                        toks.erase(toks.begin());
                 }
@@ -219,9 +228,13 @@ void Assembler::tokenize(const char* fn) {
 
 void Assembler::outputFile() {
     if(verbose)
-        std::cout << "Output binary";
+        std::cout << "Output binary\n";
     // Output code
     for(lineNb=0; lineNb<tokens.size(); ++lineNb) {
+        if(opMap.find(tokens[lineNb][0]) == opMap.end()) {
+            Error::error(ERR_OP_UNKNOWN,files[lineNb],lines[lineNb],tokens[lineNb][0]);
+            continue;
+        }
         u8 opcode = opMap[tokens[lineNb][0]];
         u16 imm;
         u8 n = 0, n1 = 0, n2 = 0;

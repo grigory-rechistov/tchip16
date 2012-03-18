@@ -23,7 +23,7 @@
 
 void helpOut();
 
-const char* tchip16_ver = "tchip16 1.4.2 -- a chip16 assembler\n";
+const char* tchip16_ver = "tchip16 1.4.3 -- a chip16 assembler\n";
 
 int main(int argc, char* argv[]) {
 
@@ -88,6 +88,10 @@ int main(int argc, char* argv[]) {
 		}
         else if(arg == "--version") {
             std::cout << tchip16_ver;
+            return 0;
+        }
+        else if(arg == "--dog") {
+            std::cout << "HELLO\nYES, THIS IS DOG\n";
             return 0;
         }
 	}

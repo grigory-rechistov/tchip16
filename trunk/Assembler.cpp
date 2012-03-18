@@ -192,7 +192,7 @@ void Assembler::tokenize(const char* fn) {
                         int pad = alignLabels ? (totalBytes % 4 != 0 ? 4 - (totalBytes % 4) : 0) : 0;
                         totalBytes += pad;
                     }
-					else
+					else if(toks[0] != "start")
 						totalBytes += 4;
 				}
 			}
@@ -371,6 +371,9 @@ void Assembler::outputFile() {
 		case STM_R: case CMP: case TST:
 			if(tokens[lineNb].size() > 3 || tokens[lineNb].size() < 3)
 				Error err(ERR_OP_ARGS,files[lineNb],lines[lineNb],tokens[lineNb][0]);
+            if(regMap.find(tokens[lineNb][1]) == regMap.end() ||
+                    regMap.find(tokens[lineNb][2]) == regMap.end())
+                Error err(ERR_OP_ARGS,files[lineNb],lines[lineNb],tokens[lineNb][0]);
 			op_r_r(buffer,opcode,(u8)regMap[tokens[lineNb][1]],(u8)regMap[tokens[lineNb][2]]);
 			break;
 		case ADD_R3: case SUB_R3: case MUL_R3: case DIV_R3: case AND_R3: case OR_R3:

@@ -23,7 +23,7 @@
 
 void helpOut();
 
-const char* tchip16_ver = "tchip16 1.4.1 -- a chip16 assembler\n";
+const char* tchip16_ver = "tchip16 1.4.2 -- a chip16 assembler\n";
 
 int main(int argc, char* argv[]) {
 

@@ -64,6 +64,18 @@ int main(int argc, char* argv[]) {
 					tc16->putMmap();
                 else if(arg == "-r" || arg == "-R" || arg == "--raw")
                     tc16->noHeader();
+                else if(arg == "-h" || arg == "-H" || arg == "--help") {
+                    helpOut();
+                    return 0;
+                }
+                else if(arg == "--version") {
+                    std::cout << tchip16_ver;
+                    return 0;
+                }
+                else if(arg == "--dog") {
+                    std::cout << "HELLO\nYES, THIS IS DOG\n";
+                    return 0;
+                }
 				else {
 					Error::error(ERR_CMD_UNKNOWN);
                     validCmds = false;

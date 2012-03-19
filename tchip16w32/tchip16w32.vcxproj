@@ -77,17 +77,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\Assembler.cpp" />
-    <ClCompile Include="..\crc.c" />
-    <ClCompile Include="..\Error.cpp" />
-    <ClCompile Include="..\main.cpp" />
+    <ClCompile Include="..\src\Assembler.cpp" />
+    <ClCompile Include="..\src\crc.c" />
+    <ClCompile Include="..\src\Error.cpp" />
+    <ClCompile Include="..\src\main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\Assembler.h" />
-    <ClInclude Include="..\crc.h" />
-    <ClInclude Include="..\Error.h" />
-    <ClInclude Include="..\Opcodes.h" />
-    <ClInclude Include="..\RomHeader.h" />
+    <ClInclude Include="..\src\Assembler.h" />
+    <ClInclude Include="..\src\crc.h" />
+    <ClInclude Include="..\src\Error.h" />
+    <ClInclude Include="..\src\Opcodes.h" />
+    <ClInclude Include="..\src\RomHeader.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

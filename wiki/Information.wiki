@@ -15,7 +15,7 @@ Windows:
 
 = Usage =
 
-On linux, enter `man tchip16`, `tchip16 --help` or consult the README.
+On linux, enter `man tchip16` or `tchip16 --help` or consult the README.
 On windows, enter `tchip16.exe --help` or consult the README.
 
 == tchip16 ==

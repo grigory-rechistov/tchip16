@@ -15,17 +15,17 @@ D_OBJECTS = obj/main.d.o obj/Assembler.d.o obj/Error.d.o obj/crc.d.o
 tchip16: ${OBJECTS}
 	${CC} ${CFLAGS} ${OBJECTS} ${LDFLAGS} -s -o $@
 
-obj/main.o: main.cpp Error.h Assembler.h
-	${CC} -c ${CFLAGS} main.cpp -o $@ 
+obj/main.o: src/main.cpp src/Error.h src/Assembler.h
+	${CC} -c ${CFLAGS} src/main.cpp -o $@ 
 
-obj/Assembler.o: Assembler.cpp Assembler.h Opcodes.h RomHeader.h crc.h
-	${CC} -c ${CFLAGS} Assembler.cpp -o $@
+obj/Assembler.o: src/Assembler.cpp src/Assembler.h src/Opcodes.h src/RomHeader.h src/crc.h
+	${CC} -c ${CFLAGS} src/Assembler.cpp -o $@
 
-obj/Error.o: Error.cpp Error.h
-	${CC} -c ${CFLAGS} Error.cpp -o $@ 
+obj/Error.o: src/Error.cpp src/Error.h
+	${CC} -c ${CFLAGS} src/Error.cpp -o $@ 
 
-obj/crc.o: crc.c crc.h
-	${CC} -c ${CFLAGS} crc.c -o $@
+obj/crc.o: src/crc.c src/crc.h
+	${CC} -c ${CFLAGS} src/crc.c -o $@
 
 # DEBUG TARGET
 
@@ -36,17 +36,17 @@ tchip16_debug: ${D_OBJECTS}
 
 # DEBUG OBJECTS
 
-obj/main.d.o: main.cpp Error.h Assembler.h
-	${CC} -c ${D_CFLAGS} main.cpp -o $@ 
+obj/main.d.o: src/main.cpp src/Error.h src/Assembler.h
+	${CC} -c ${D_CFLAGS} src/main.cpp -o $@ 
 
-obj/Assembler.d.o: Assembler.cpp Assembler.h Opcodes.h
-	${CC} -c ${D_CFLAGS} Assembler.cpp -o $@ 
+obj/Assembler.d.o: src/Assembler.cpp src/Assembler.h src/Opcodes.h
+	${CC} -c ${D_CFLAGS} src/Assembler.cpp -o $@ 
 
-obj/Error.d.o: Error.cpp Error.h
-	${CC} -c ${D_CFLAGS} Error.cpp -o $@ 
+obj/Error.d.o: src/Error.cpp src/Error.h
+	${CC} -c ${D_CFLAGS} src/Error.cpp -o $@ 
 
-obj/crc.d.o: crc.c crc.h
-	${CC} -c ${D_CFLAGS} crc.c -o $@ 
+obj/crc.d.o: src/crc.c src/crc.h
+	${CC} -c ${D_CFLAGS} src/crc.c -o $@ 
 
 #####################################################################
 # ALL TARGETS
@@ -63,13 +63,17 @@ clean:
 install:
 	-@echo Installing binaries...
 	-@cp tchip16 tchip16_debug /usr/bin
-	-@echo Processing triggers for man-db...
-	-@cp tchip16.1.gz /usr/share/man/man1/tchip16.1.gz
-	-@mandb > /dev/null || true
+	-@echo Installing man page... 
+	-@cp src/tchip16.1.gz /usr/share/man/man1/tchip16.1.gz
+	-@echo Updating man-db...
+	-@mandb -q #> /dev/null || true
+	-@echo done.
 
 uninstall:
 	-@echo Removing binaries...
 	-@rm /usr/bin/tchip16 /usr/bin/tchip16_debug 2> /dev/null || true
-	-@echo Processing triggers for man-db...
+	-@echo Removing man page...
 	-@rm /usr/share/man/man1/tchip16.1.gz 2> /dev/null || true
-	-@mandb > /dev/null || true
+	-@echo Updating man-db... 
+	-@mandb -q #> /dev/null || true
+	-@echo done.

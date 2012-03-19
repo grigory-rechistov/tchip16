@@ -3,10 +3,22 @@
 
 http://code.google.com/p/tchip16
 ------------------------------------------------------------------------------------
-CHANGELOG:	V 1.4.2
+CHANGELOG:	V 1.4.3
 ------------------------------------------------------------------------------------
 
 - see commit comments on project homepage.
+
+------------------------------------------------------------------------------------
+INSTALLATION:
+------------------------------------------------------------------------------------
+
+LINUX:
+    - run `make clean all' to recompile.
+    - run `sudo make install' to install tchip16 to your /usr/bin, and add a man
+      entry for tchip16.
+
+WINDOWS:
+    - consider adding this directory to your PATH, for ease of use.
 
 ------------------------------------------------------------------------------------
 USAGE: 

@@ -1,15 +1,28 @@
 #summary tchip16 quick guide to get you started
 #labels Phase-Deploy,Featured
 
+= Installation = 
+
+Linux:
+  * untar the _tchip16`_`X.x.x.tar.gz_ archive
+  * in the resulting folder, run `make clean all`
+  * run `sudo make install`
+  * to uninstall, run `sudo make uninstall`
+
+Windows:
+  * extract the _tchip16`_`X.x.x.zip_ archive
+  * consider adding the resulting directory to your PATH
+
 = Usage =
 
-(See the README in your download for more extensive information)
+On linux, enter `man tchip16`, `tchip16 --help` or consult the README.
+On windows, enter `tchip16.exe --help` or consult the README.
 
 == tchip16 ==
 
-Windows: `tchip16.exe <source> [-o dest] [-m|--mmap] [-a|--align] [-z|--zero] [-r|--raw] [-h|--help] [--version]`
-
 Linux: `./tchip16 <source> [-o dest] [-m|--mmap] [-a|--align] [-z|--zero] [-r|--raw] [-h|--help] [--version]` 
+
+Windows: `tchip16.exe <source> [-o dest] [-m|--mmap] [-a|--align] [-z|--zero] [-r|--raw] [-h|--help] [--version]`
 
 (< >:required, [ ]:optional)
 

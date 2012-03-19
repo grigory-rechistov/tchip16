@@ -13,23 +13,28 @@ INSTALLATION:
 ------------------------------------------------------------------------------------
 
 LINUX:
-    - run `make clean all' to recompile.
+    - run `make clean all' to compile.
     - run `sudo make install' to install tchip16 to your /usr/bin, and add a man
       entry for tchip16.
+    - run `sudo make uninstall' to remove tchip16 from your /usr/bin and from the 
+      man-db.
 
 WINDOWS:
     - consider adding this directory to your PATH, for ease of use.
+    - if you have the source distribution, and would like to compile, open the .sln
+      file in the tchip16w32/ folder and follow the usual steps (F7 - Build).
 
 ------------------------------------------------------------------------------------
 USAGE: 
 ------------------------------------------------------------------------------------
 
-LINUX:      ./tchip16 <source> [-o dest][-v|--verbose][-z|--zero][-r|--raw]
-                               [-a|--align][-m|--mmap]
-            ./tchip16          [-h|--help][--version]
-WINDOWS:  tchip16.exe <source> [-o dest][-v|--verbose][-z|--zero][-r|--raw]
-                               [-a|--align][-m|--mmap]
-          tchip16.exe          [-h|--help][--version]
+LINUX:    tchip16     <source> [-o dest] [-v|--verbose] [-z|--zero] [-r|--raw]
+                               [-a|--align] [-m|--mmap]
+          tchip16              [-h|--help] [--version]
+
+WINDOWS:  tchip16.exe <source> [-o dest] [-v|--verbose] [-z|--zero] [-r|--raw]
+                               [-a|--align] [-m|--mmap]
+          tchip16.exe          [-h|--help] [--version]
 
 Run tchip16 with the --help or -h flag for a description of how they affect your
 program.

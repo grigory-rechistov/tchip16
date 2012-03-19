@@ -65,13 +65,11 @@ install:
 	-@cp tchip16 tchip16_debug /usr/bin
 	-@echo Processing triggers for man-db...
 	-@cp tchip16.1.gz /usr/share/man/man1/tchip16.1.gz
-	-@mandb > /dev/null 2> /dev/null || true
-	-@echo Done.
+	-@mandb > /dev/null || true
 
 uninstall:
 	-@echo Removing binaries...
 	-@rm /usr/bin/tchip16 /usr/bin/tchip16_debug 2> /dev/null || true
 	-@echo Processing triggers for man-db...
 	-@rm /usr/share/man/man1/tchip16.1.gz 2> /dev/null || true
-	-@mandb > /dev/null 2> /dev/null || true
-	-@echo Done.
+	-@mandb > /dev/null || true

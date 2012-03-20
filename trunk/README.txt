@@ -1,49 +1,54 @@
+tchip16 1.4.4 -- a chip16 assembler
+
 (C) T Kelsall, 2012 -- All rights reserved.
-	See LICENSE.txt for the program license.
-
 http://code.google.com/p/tchip16
-------------------------------------------------------------------------------------
-CHANGELOG:	V 1.4.3
-------------------------------------------------------------------------------------
 
+
+CHANGELOG:	
+----------
 - see commit comments on project homepage.
 
-------------------------------------------------------------------------------------
-INSTALLATION:
-------------------------------------------------------------------------------------
 
-LINUX:
+LICENSE:
+--------
+tchip16 is covered by the GNU Public License Version 3.
+See LICENSE.txt for more details.
+
+
+INSTALLATION:
+-------------
+On Linux/Mac OS:
     - run `make clean all' to compile.
     - run `sudo make install' to install tchip16 to your /usr/bin, and add a man
       entry for tchip16.
     - run `sudo make uninstall' to remove tchip16 from your /usr/bin and from the 
       man-db.
 
-WINDOWS:
-    - consider adding this directory to your PATH, for ease of use.
-    - if you have the source distribution, and would like to compile, open the .sln
-      file in the tchip16w32/ folder and follow the usual steps (F7 - Build).
+On Windows:
+    - consider adding this directory to your PATH environment variable, for ease of use.
+    - if you have the *source* distribution, and would like to compile, open the .sln
+      file in the tchip16w32/ folder with your IDE and build from there.
 
-------------------------------------------------------------------------------------
+
 USAGE: 
-------------------------------------------------------------------------------------
-
-LINUX:    tchip16     <source> [-o dest] [-v|--verbose] [-z|--zero] [-r|--raw]
+------
+On Linux:
+          tchip16     <source> [-o dest] [-v|--verbose] [-z|--zero] [-r|--raw]
                                [-a|--align] [-m|--mmap]
           tchip16              [-h|--help] [--version]
 
-WINDOWS:  tchip16.exe <source> [-o dest] [-v|--verbose] [-z|--zero] [-r|--raw]
+On Windows:
+          tchip16.exe <source> [-o dest] [-v|--verbose] [-z|--zero] [-r|--raw]
                                [-a|--align] [-m|--mmap]
           tchip16.exe          [-h|--help] [--version]
 
 Run tchip16 with the --help or -h flag for a description of how they affect your
 program.
 
-------------------------------------------------------------------------------------
-SYNTAX:
-------------------------------------------------------------------------------------
 
-tchip16 accepts standard assembly syntax. Here's an example:
+SYNTAX:
+-------
+tchip16 accepts standard assembly syntax. Here's an example (which does nothing):
 
     start       label2
     version     1.0
@@ -68,10 +73,9 @@ Labels may end OR start with a colon ":", NOT both
 Commas and/or whitespace delimit instructions/operands
 0x00, $00, #00, and 00h all denote hex numbers
 
-------------------------------------------------------------------------------------
-DIRECTIVES
-------------------------------------------------------------------------------------
 
+DIRECTIVES:
+-----------
 tchip16 also features some directives to make your life easier:
 
 # START -- start val

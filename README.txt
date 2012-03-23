@@ -1,4 +1,4 @@
-tchip16 1.4.4 -- a chip16 assembler
+tchip16 1.4.3 -- a chip16 assembler
 
 (C) T Kelsall, 2012 -- All rights reserved.
 http://code.google.com/p/tchip16
@@ -27,7 +27,7 @@ On Linux/Mac OS:
 On Windows:
     - consider adding this directory to your PATH environment variable, for ease of use.
     - if you have the *source* distribution, and would like to compile, open the .sln
-      file in the tchip16w32/ folder with your IDE and build from there.
+      file in the vs2010/ folder with your IDE and build from there.
 
 
 USAGE: 

@@ -894,7 +894,7 @@ u16 Assembler::atoi_t(std::string str)
         if(str[0] == '-')
             ++start;
         // Number does not fit than 16-bits
-        if(str.size() - start > 4)
+        if(str.size() - start > 5)
             Error::error(ERR_NUM_OVERFLOW,files[lineNb],lines[lineNb],tokens[lineNb][0]);
         for(int i=str.size()-1; i>=start; --i) {
             char c = str[i];

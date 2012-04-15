@@ -1,6 +1,6 @@
 tchip16 1.4.3 -- a chip16 assembler
 
-(C) T Kelsall, 2012 -- All rights reserved.
+(C) tykel, 2012 -- All rights reserved.
 http://code.google.com/p/tchip16
 
 
@@ -108,3 +108,7 @@ Allows you to import a binary file, which will be appended verbatim at the end o
 the code. They are stored in the order they are imported.
 Imported: filename, from address offset to (offset+n), written from address label
 in the ROM.
+
+MORE INFO:
+----------
+On Linux, enter 'man tchip16' for more information.

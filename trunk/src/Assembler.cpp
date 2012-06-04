@@ -862,7 +862,7 @@ u16 Assembler::atoi_t(std::string str)
         (str[0] == '$') ||
         (str[0] == '0' && str[1] == 'x') || 
         (str[str.size()-1] == 'h'))) {
-
+        
         if(str[0] == '#' || str[0] == '$')
             str = str.substr(1,str.size());
         else if(str[0] == '0' && str[1] == 'x')
@@ -878,7 +878,7 @@ u16 Assembler::atoi_t(std::string str)
             if(c >= 0x30 && c <= 0x39)
                 v = (u16)(c - 0x30);
             else if(c >= 0x61 && c <= 0x66)
-                v = (u16)(c - 0x30 - 7);
+                v = (u16)(c - 0x61 + 10);
             else {
                 Error::error(ERR_NAN,files[lineNb],lines[lineNb],tokens[lineNb][0]);
                 return 0;

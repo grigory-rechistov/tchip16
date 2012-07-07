@@ -388,10 +388,12 @@ void Assembler::outputFile() {
             }
             else
                 imm = atoi_t(tokens[lineNb][2]);
-            if(regMap.find(tokens[lineNb][1]) == regMap.end()) {
+            if(regMap.find(tokens[lineNb][1]) == regMap.end() && tokens[lineNb][1] != "sp" && tokens[lineNb][1] != "SP") {
                 Error::error(ERR_OP_ARGS,files[lineNb],lines[lineNb],tokens[lineNb][0]);
             }
-            else 
+            else if(opcode == LDI_SP)
+				op_r_imm(buffer, opcode, 0, imm);
+			else
                 op_r_imm(buffer,opcode,(u8)regMap[tokens[lineNb][1]],imm);
             break;
         case SHL_N: case SHR_N: case SAR_N:

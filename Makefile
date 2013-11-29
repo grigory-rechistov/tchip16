@@ -2,7 +2,7 @@
 
 USER=$(shell whoami)
 CC = g++
-CFLAGS = -Wall -Os
+CFLAGS = -Wall -O0 -g
 D_CFLAGS = -Wall -D _DEBUG
 LDFLAGS = -lm
 SRCDIR = src
@@ -12,16 +12,11 @@ D_OBJECTS = $(OBJDIR)/main.d.o $(OBJDIR)/Assembler.d.o $(OBJDIR)/Error.d.o $(OBJ
 
 .PHONY: all debug clean install uninstall
 
-$(OBJECTS): | $(OBJDIR)
-
-$(OBJDIR):
-	-@test -d $(OBJDIR) || mkdir $(OBJDIR)
-
 #####################################################################
 # RELEASE TARGET (DEFAULT)
 
 tchip16: $(OBJECTS)
-	$(CC) $(CFLAGS) $(OBJECTS) $(LDFLAGS) -s -o $@
+	$(CC) $(CFLAGS) $(OBJECTS) $(LDFLAGS) -o $@
 
 $(OBJDIR)/main.o: $(SRCDIR)/main.cpp $(SRCDIR)/Error.h $(SRCDIR)/Assembler.h
 	$(CC) -c $(CFLAGS) $(SRCDIR)/main.cpp -o $@ 
@@ -60,6 +55,11 @@ $(OBJDIR)/crc.d.o: $(SRCDIR)/crc.c $(SRCDIR)/crc.h
 # ALL TARGETS
 
 all: $(OBJECTS) tchip16 tchip16_debug 
+
+$(OBJECTS): | $(OBJDIR)
+
+$(OBJDIR):
+	-@test -d $(OBJDIR) || mkdir $(OBJDIR)
 
 # CLEAN TARGET
 

@@ -22,18 +22,20 @@ enum chip16_opcodes {
 	ORI =	0x70, OR_R2, OR_R3,
 	XORI =	0x80, XOR_R2, XOR_R3,
 	MULI =	0x90, MUL_R2, MUL_R3,
-	DIVI =	0xA0, DIV_R2, DIV_R3,
+	DIVI =	0xA0, DIV_R2, DIV_R3, MODI, MOD_R2, MOD_R3, REMI, REM_R2, REM_R3,
 	SHL_N = 0xB0, SHR_N, SAR_N, SHL_R, SHR_R, SAR_R,
 	PUSH =	0xC0, POP, PUSHALL, POPALL, PUSHF, POPF,
 	PAL_I = 0xD0, PAL_R,
+    NOTI = 0xE0, NOT_R, NOT_R2, NEGI, NEG_R, NEG_R2,
 	// Pseudo-opcodes
 	DB =	0xFA, DB_STR, DW, START
 };
 
 enum chip16_mnemonics {
 	nop,cls,vblnk,spr,drw,rnd,flip,snd0,snd1,snd2,snd3,snp,sng,jmp,jmc,jmz,jx,jme,call,ret,
-	cx,ldi,ldm,mov,stm,addi,add,subi,sub,cmpi,cmp,muli,mul,divi,_div,andi,_and,tsti,tst,
-	ori,_or,xori,_xor,shl,shr,sal,sar,push,pop,pushall,popall,pushf,popf,pal,_db
+	cx,ldi,ldm,mov,stm,addi,add,subi,sub,cmpi,cmp,muli,mul,divi,_div,modi,mod,remi,rem,andi,
+    _and,tsti,tst,ori,_or,xori,_xor,shl,shr,sal,sar,push,pop,pushall,popall,pushf,popf,pal,
+    _not,neg,_db
 };
 
 #endif

@@ -1,6 +1,6 @@
 /*    
 	tchip16, an open-source Chip16 assembler
-    Copyright (C) 2010-12  Tim Kelsall
+    Copyright (C) 2010-13  Tim Kelsall
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@
 
 void helpOut();
 
-const char* tchip16_ver = "tchip16 1.4.5 -- a chip16 assembler\n";
+const char* tchip16_ver = "tchip16 1.4.6 -- a chip16 assembler\n";
 
 int main(int argc, char* argv[]) {
 
@@ -150,6 +150,6 @@ void helpOut() {
 		"    -h, --help: display this help text and exit\n"
         "    --version: display version information and exit\n\n"
         "Assembler directives: see README.txt\n"
-        "Copyright (C) 2010-12 tykel\n"
+        "Copyright (C) 2010-13 tykel\n"
         "http://code.google.com/p/tchip16\n";
 }

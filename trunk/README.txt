@@ -1,6 +1,6 @@
-tchip16 1.4.5 -- a chip16 assembler
+tchip16 1.4.6 -- a chip16 assembler
 
-(C) tykel, 2012 -- All rights reserved.
+(C) tykel, 2013 -- All rights reserved.
 http://code.google.com/p/tchip16
 
 

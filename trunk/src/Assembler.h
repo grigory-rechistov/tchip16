@@ -71,17 +71,17 @@ private:
 	void op_n(u8*,OPCODE,u8);				
 	// flip
 	void op_n_n(u8*,OPCODE,u8,u8);
-	// jmp_r, call_r, pal_r
+	// jmp_r, call_r, pal_r, not_r, neg_r
 	void op_r(u8*,OPCODE,u8);
-	// rnd, ldi, ldm, stm, addi, subi, muli, divi, cmpi, andi, tsti, ori, xori
+	// rnd, ldi, ldm, stm, addi, subi, muli, divi, modi, remi, cmpi, andi, tsti, ori, xori, noti, negi
 	void op_r_imm(u8*,OPCODE,u8,u16);
 	// shl_n, shr_n, sar_n
 	void op_r_n(u8*,OPCODE,u8,u8);
 	// drw, jme
 	void op_r_r_imm(u8*,OPCODE,u8,u8,u16);
-	// add_r2, sub_r2, mul_r2, div_r2, and_r2, or_r2, xor_r2, shl_r, shr_r, sar_r
+	// add_r2, sub_r2, mul_r2, div_r2, mod_r2, rem_r2, and_r2, or_r2, xor_r2, shl_r, shr_r, sar_r, not_r2, neg_r2
 	void op_r_r(u8*,OPCODE,u8,u8);
-	// add_r3, sub_r3, mul_r3, div_r3, cmp, and_r3, tst, or_r3, xor_r3
+	// add_r3, sub_r3, mul_r3, div_r3, mod_r3, rem_r3, cmp, and_r3, tst, or_r3, xor_r3
 	void op_r_r_r(u8*,OPCODE,u8,u8,u8);
 
 	// Pseudo-instructions

@@ -362,7 +362,7 @@ void Assembler::outputFile() {
                 n2 = (u8)atoi_t(tokens[lineNb][2]);
             op_n_n(buffer,opcode,n1,n2);
             break;
-        case CALL_R: case JMP_R: case PUSH: case POP: case PAL_R:
+        case CALL_R: case JMP_R: case PUSH: case POP: case PAL_R: case NOT_R: case NEG_R:
             if(tokens[lineNb].size() > 2 || tokens[lineNb].size() < 2) {
                 Error::error(ERR_OP_ARGS,files[lineNb],lines[lineNb],tokens[lineNb][0]);
             }
@@ -373,7 +373,8 @@ void Assembler::outputFile() {
                 op_r(buffer,opcode,regMap[tokens[lineNb][1]]);
             break;
         case SNP: case RND: case LDI_R: case LDI_SP: case LDM_I: case STM_I: case ADDI: case SUBI: 
-        case MULI: case DIVI: case CMPI: case ANDI: case TSTI: case ORI: case XORI:
+        case MULI: case DIVI: case NOTI: case NEGI: case MODI: case REMI: case CMPI: case ANDI:
+        case TSTI: case ORI: case XORI:
             if(tokens[lineNb].size() > 3 || tokens[lineNb].size() < 3) {
                 Error::error(ERR_OP_ARGS,files[lineNb],lines[lineNb],tokens[lineNb][0]);
                 break;
@@ -442,7 +443,7 @@ void Assembler::outputFile() {
             break;
         case ADD_R2: case SUB_R2: case MUL_R2: case DIV_R2: case AND_R2: case OR_R2:
         case XOR_R2: case SHL_R: case SHR_R: case SAR_R: case LDM_R: case MOV: 
-        case STM_R: case CMP: case TST:
+        case NOT_R2: case NEG_R2: case MOD_R2: case REM_R2: case STM_R: case CMP: case TST:
             if(tokens[lineNb].size() > 3 || tokens[lineNb].size() < 3) {
                 Error::error(ERR_OP_ARGS,files[lineNb],lines[lineNb],tokens[lineNb][0]);
             }
@@ -454,7 +455,7 @@ void Assembler::outputFile() {
                 op_r_r(buffer,opcode,(u8)regMap[tokens[lineNb][1]],(u8)regMap[tokens[lineNb][2]]);
             break;
         case ADD_R3: case SUB_R3: case MUL_R3: case DIV_R3: case AND_R3: case OR_R3:
-        case XOR_R3: case DRW_R:
+        case XOR_R3: case DRW_R: case MOD_R3: case REM_R3:
             if(tokens[lineNb].size() > 4 || tokens[lineNb].size() < 4) {
                 Error::error(ERR_OP_ARGS,files[lineNb],lines[lineNb],tokens[lineNb][0]);
             }
@@ -970,6 +971,12 @@ void Assembler::initMaps() {
     opMap["divi"] = DIVI;
     opMap["div_r2"] = DIV_R2;
     opMap["div_r3"] = DIV_R3;
+    opMap["modi"] = MODI;
+    opMap["mod_r2"] = MOD_R2;
+    opMap["mod_r3"] = MOD_R3;
+    opMap["remi"] = REMI;
+    opMap["rem_r2"] = REM_R2;
+    opMap["rem_r3"] = REM_R3;
     opMap["shl_n"] = SHL_N;
     opMap["sal_n"] = SHL_N;
     opMap["shr_n"] = SHR_N;
@@ -986,6 +993,12 @@ void Assembler::initMaps() {
     opMap["popf"] = POPF;
     opMap["pal_i"] = PAL_I;
     opMap["pal_r"] = PAL_R;
+    opMap["noti"] = NOTI;
+    opMap["not_r"] = NOT_R;
+    opMap["not_r2"] = NOT_R2;
+    opMap["negi"] = NEGI;
+    opMap["neg_r"] = NEG_R;
+    opMap["neg_r2"] = NEG_R2;
     opMap["db_n"] = DB;
     opMap["db_str"] = DB_STR;
     opMap["dw"] = DW;
@@ -1047,11 +1060,15 @@ void Assembler::initMaps() {
     mnemMap["xor"] = _xor;
     mnemMap["mul"] = mul;
     mnemMap["div"] = _div;
+    mnemMap["mod"] = mod; 
+    mnemMap["rem"] = rem; 
     mnemMap["shl"] = shl;
     mnemMap["sal"] = sal;
     mnemMap["shr"] = shr;
     mnemMap["sar"] = sar;
     mnemMap["pal"] = pal;
+    mnemMap["not"] = _not;
+    mnemMap["neg"] = neg; 
     mnemMap["db"] = _db;
 
 }
@@ -1188,6 +1205,22 @@ void Assembler::fixOps() {
                 else
                     Error::error(ERR_OP_ARGS,files[lineNb],lines[lineNb],tokens[lineNb][0]);
                 break;
+            case mod:
+                if(tokens[lineNb].size() == 3)
+                    tokens[lineNb][0] = "mod_r2";
+                else if(tokens[lineNb].size() == 4)
+                    tokens[lineNb][0] = "mod_r3";
+                else
+                    Error::error(ERR_OP_ARGS,files[lineNb],lines[lineNb],tokens[lineNb][0]);
+                break;
+            case rem:
+                if(tokens[lineNb].size() == 3)
+                    tokens[lineNb][0] = "rem_r2";
+                else if(tokens[lineNb].size() == 4)
+                    tokens[lineNb][0] = "rem_r3";
+                else
+                    Error::error(ERR_OP_ARGS,files[lineNb],lines[lineNb],tokens[lineNb][0]);
+                break;
             case sal:
             case shl:
                 if(tokens[lineNb].size() != 3)
@@ -1221,6 +1254,20 @@ void Assembler::fixOps() {
                 else
                     tokens[lineNb][0] = "pal_i";
                 break;
+            case _not:
+                if(tokens[lineNb].size() == 2)
+                    tokens[lineNb][0] = "not_r";
+                else if(tokens[lineNb].size() == 3)
+                    tokens[lineNb][0] = "mod_r2";
+                else
+                    Error::error(ERR_OP_ARGS,files[lineNb],lines[lineNb],tokens[lineNb][0]);
+            case neg:
+                if(tokens[lineNb].size() == 2)
+                    tokens[lineNb][0] = "neg_r";
+                else if(tokens[lineNb].size() == 3)
+                    tokens[lineNb][0] = "neg_r2";
+                else
+                    Error::error(ERR_OP_ARGS,files[lineNb],lines[lineNb],tokens[lineNb][0]);
             case _db:
                 if(tokens[lineNb][1][0] == '"') {
                     int lastword = tokens[lineNb].size()-1;

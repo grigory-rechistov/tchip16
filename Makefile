@@ -2,7 +2,7 @@
 
 USER=$(shell whoami)
 CC = g++
-CFLAGS = -Wall -O0 -g
+CFLAGS = -Wall -O2 
 D_CFLAGS = -Wall -D _DEBUG
 LDFLAGS = -lm
 SRCDIR = src

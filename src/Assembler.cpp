@@ -1258,9 +1258,10 @@ void Assembler::fixOps() {
                 if(tokens[lineNb].size() == 2)
                     tokens[lineNb][0] = "not_r";
                 else if(tokens[lineNb].size() == 3)
-                    tokens[lineNb][0] = "mod_r2";
+                    tokens[lineNb][0] = "not_r2";
                 else
                     Error::error(ERR_OP_ARGS,files[lineNb],lines[lineNb],tokens[lineNb][0]);
+                break;
             case neg:
                 if(tokens[lineNb].size() == 2)
                     tokens[lineNb][0] = "neg_r";
@@ -1268,6 +1269,7 @@ void Assembler::fixOps() {
                     tokens[lineNb][0] = "neg_r2";
                 else
                     Error::error(ERR_OP_ARGS,files[lineNb],lines[lineNb],tokens[lineNb][0]);
+                break;
             case _db:
                 if(tokens[lineNb][1][0] == '"') {
                     int lastword = tokens[lineNb].size()-1;

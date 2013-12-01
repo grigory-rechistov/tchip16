@@ -35,7 +35,7 @@ enum chip16_mnemonics {
 	nop,cls,vblnk,spr,drw,rnd,flip,snd0,snd1,snd2,snd3,snp,sng,jmp,jmc,jmz,jx,jme,call,ret,
 	cx,ldi,ldm,mov,stm,addi,add,subi,sub,cmpi,cmp,muli,mul,divi,_div,modi,mod,remi,rem,andi,
     _and,tsti,tst,ori,_or,xori,_xor,shl,shr,sal,sar,push,pop,pushall,popall,pushf,popf,pal,
-    _not,neg,_db
+    noti,_not,negi,neg,_db
 };
 
 #endif

@@ -1,10 +1,18 @@
-tchip16 1.4.6 -- a chip16 assembler
+## tchip16 1.4.6 - an assembler for CHIP16 specification
+
+This project has been migrated from its Google Code hosting because:
+
+# Google Code is shutting down
+# The original author has been inactive on it for some time
+
+### Original Readme Contents
+
 
 (C) tykel, 2013 -- All rights reserved.
 http://code.google.com/p/tchip16
 
 
-CHANGELOG:	
+CHANGELOG:
 ----------
 - see commit comments on project homepage.
 
